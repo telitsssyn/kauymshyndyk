@@ -1,164 +1,101 @@
-:root {
-  --font-mono: 'Roboto Mono', monospace;
+@import 'tailwindcss';
+
+@theme {
+  /* Палитра по фирменному стилю: бирюза + тёмный чернильный + тёплый светлый фон */
+  --color-ink: #16323a;
+  --color-ink-soft: #3d565e;
+  --color-teal: #2e9e8f;
+  --color-teal-dark: #1f7a6d;
+  --color-mint: #dcede7;
+  --color-mint-soft: #ecf5f1;
+  --color-paper: #f6f4ef;
+  --color-sky: #3eb8c0;
+
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-heading: var(--font-oswald), var(--font-inter), ui-sans-serif, sans-serif;
 }
 
-* {
-  box-sizing: border-box;
-}
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
 
-html {
-  font-size: 18px;
-  line-height: 32px;
+  body {
+    @apply bg-paper font-sans text-lg leading-relaxed text-ink;
+  }
 
-  background: rgb(0, 0, 0);
-  -webkit-font-smoothing: antialiased;
-}
+  h1,
+  h2,
+  h3,
+  h4 {
+    @apply font-heading font-semibold uppercase leading-tight tracking-wide text-balance;
+  }
 
-html,
-body,
-#app {
-  height: 100%;
-}
+  /* Крупные и заметные фокус-стили — на сайт заходят пожилые люди */
+  :focus-visible {
+    @apply outline-3 outline-offset-2 outline-teal-dark;
+  }
 
-body {
-  font-family: system-ui;
-  font-size: 18px;
-  line-height: 32px;
-
-  margin: 0;
-  color: rgb(1000, 1000, 1000);
-
-  @media (max-width: 1024px) {
-    font-size: 15px;
-    line-height: 24px;
+  ::selection {
+    @apply bg-mint text-ink;
   }
 }
 
-img {
-  max-width: 100%;
-  height: auto;
-  display: block;
+@utility btn {
+  @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-xl px-5 py-2.5 font-heading text-base font-semibold uppercase tracking-wider transition-colors;
 }
 
-h1 {
-  margin: 40px 0;
-  font-size: 64px;
-  line-height: 70px;
-  font-weight: bold;
-
-  @media (max-width: 1024px) {
-    margin: 24px 0;
-    font-size: 42px;
-    line-height: 42px;
+@layer components {
+  .container-site {
+    @apply mx-auto w-full max-w-6xl px-4 sm:px-6;
   }
 
-  @media (max-width: 768px) {
-    font-size: 38px;
-    line-height: 38px;
+  .btn-primary {
+    @apply btn bg-teal-dark text-white hover:bg-ink;
   }
 
-  @media (max-width: 400px) {
-    font-size: 32px;
-    line-height: 32px;
-  }
-}
-
-p {
-  margin: 24px 0;
-
-  @media (max-width: 1024px) {
-    margin: calc(var(--base) * 0.75) 0;
-  }
-}
-
-a {
-  color: currentColor;
-
-  &:focus {
-    opacity: 0.8;
-    outline: none;
+  .btn-outline {
+    @apply btn border-2 border-teal-dark text-teal-dark hover:bg-mint;
   }
 
-  &:active {
-    opacity: 0.7;
-    outline: none;
-  }
-}
-
-svg {
-  vertical-align: middle;
-}
-
-.home {
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  align-items: center;
-  height: 100vh;
-  padding: 45px;
-  max-width: 1024px;
-  margin: 0 auto;
-  overflow: hidden;
-
-  @media (max-width: 400px) {
-    padding: 24px;
+  .card {
+    @apply overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-ink/5;
   }
 
-  .content {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    flex-grow: 1;
-
-    h1 {
-      text-align: center;
-    }
+  .chip {
+    @apply inline-flex items-center rounded-lg bg-mint px-3 py-1 font-heading text-sm font-semibold uppercase tracking-wider text-teal-dark;
   }
 
-  .links {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-
-    a {
-      text-decoration: none;
-      padding: 0.25rem 0.5rem;
-      border-radius: 4px;
-    }
-
-    .admin {
-      color: rgb(0, 0, 0);
-      background: rgb(1000, 1000, 1000);
-      border: 1px solid rgb(0, 0, 0);
-    }
-
-    .docs {
-      color: rgb(1000, 1000, 1000);
-      background: rgb(0, 0, 0);
-      border: 1px solid rgb(1000, 1000, 1000);
-    }
+  /* Текст из редактора (rich text) */
+  .prose-church {
+    @apply space-y-4 text-ink;
   }
 
-  .footer {
-    display: flex;
-    align-items: center;
-    gap: 8px;
+  .prose-church h2 {
+    @apply mt-8 text-2xl sm:text-3xl;
+  }
 
-    @media (max-width: 1024px) {
-      flex-direction: column;
-      gap: 6px;
-    }
+  .prose-church h3 {
+    @apply mt-6 text-xl sm:text-2xl;
+  }
 
-    p {
-      margin: 0;
-    }
+  .prose-church a {
+    @apply font-semibold text-teal-dark underline underline-offset-4 hover:text-ink;
+  }
 
-    .codeLink {
-      text-decoration: none;
-      padding: 0 0.5rem;
-      background: rgb(60, 60, 60);
-      border-radius: 4px;
-    }
+  .prose-church ul {
+    @apply list-disc space-y-2 pl-6;
+  }
+
+  .prose-church ol {
+    @apply list-decimal space-y-2 pl-6;
+  }
+
+  .prose-church blockquote {
+    @apply border-l-4 border-teal pl-4 italic text-ink-soft;
+  }
+
+  .prose-church img {
+    @apply rounded-2xl;
   }
 }

@@ -1,0 +1,114 @@
+{
+  "nav": {
+    "home": "Главная",
+    "firstTime": "Я здесь впервые",
+    "schedule": "Расписание",
+    "about": "О церкви",
+    "ministries": "Служения",
+    "news": "Новости",
+    "donate": "Пожертвовать",
+    "contacts": "Контакты",
+    "menu": "Меню",
+    "openMenu": "Открыть меню",
+    "closeMenu": "Закрыть меню"
+  },
+  "common": {
+    "skipToContent": "Перейти к содержимому",
+    "readMore": "Читать дальше",
+    "allNews": "Все новости",
+    "learnMore": "Подробнее",
+    "phone": "Телефон",
+    "email": "Почта",
+    "address": "Адрес",
+    "photoOf": "Фото: {caption}"
+  },
+  "home": {
+    "upcomingServices": "Ближайшие богослужения",
+    "fullSchedule": "Полное расписание",
+    "aboutUs": "О нас",
+    "moreAboutChurch": "Больше о церкви",
+    "firstTimeTitle": "Я здесь впервые",
+    "firstTimeCta": "Что нужно знать перед первым визитом",
+    "latestNews": "Новости и события",
+    "howToFindUs": "Как нас найти",
+    "welcome": "Добро пожаловать"
+  },
+  "schedule": {
+    "title": "Расписание богослужений",
+    "weeklyTitle": "Каждую неделю",
+    "specialTitle": "Праздничные и особые служения",
+    "announcementTitle": "Изменения на этой неделе",
+    "empty": "Расписание скоро появится. Позвоните нам, чтобы узнать время служений.",
+    "days": {
+      "monday": "Понедельник",
+      "tuesday": "Вторник",
+      "wednesday": "Среда",
+      "thursday": "Четверг",
+      "friday": "Пятница",
+      "saturday": "Суббота",
+      "sunday": "Воскресенье"
+    }
+  },
+  "firstTime": {
+    "title": "Я здесь впервые",
+    "subtitle": "Мы рады гостям. Вот ответы на вопросы, которые чаще всего волнуют перед первым визитом.",
+    "faqTitle": "Частые вопросы",
+    "scheduleCta": "Посмотреть расписание служений",
+    "contactsCta": "Как добраться"
+  },
+  "about": {
+    "title": "О церкви",
+    "historyTitle": "Наша история",
+    "ministersTitle": "Служители",
+    "galleryTitle": "Фотогалерея"
+  },
+  "ministries": {
+    "title": "Служения",
+    "howToArrange": "Как договориться",
+    "contactTitle": "Остались вопросы?"
+  },
+  "news": {
+    "title": "Новости и события",
+    "event": "Событие",
+    "eventDate": "Когда: {date}",
+    "published": "Опубликовано {date}",
+    "empty": "Новостей пока нет — загляните позже.",
+    "backToList": "Ко всем новостям",
+    "newerPage": "Более новые",
+    "olderPage": "Более старые",
+    "pageOf": "Страница {page} из {total}"
+  },
+  "donate": {
+    "title": "Пожертвования",
+    "kaspiTitle": "Kaspi",
+    "kaspiNumber": "Номер для перевода",
+    "kaspiButton": "Перевести через Kaspi",
+    "qrTitle": "QR-код для перевода",
+    "qrAlt": "QR-код для пожертвования",
+    "requisitesTitle": "Банковские реквизиты",
+    "copy": "Скопировать",
+    "copied": "Скопировано!",
+    "thankYou": "Спасибо, что поддерживаете служение церкви!"
+  },
+  "contacts": {
+    "title": "Контакты",
+    "getInTouch": "Как с нами связаться",
+    "socialTitle": "Мы в соцсетях",
+    "mapTitle": "Карта: как нас найти",
+    "visitUs": "Приходите в гости"
+  },
+  "footer": {
+    "navigation": "Разделы",
+    "contacts": "Контакты",
+    "rights": "Все права защищены"
+  },
+  "notFound": {
+    "title": "Страница не найдена",
+    "text": "Такой страницы нет или она была перемещена.",
+    "goHome": "На главную"
+  },
+  "meta": {
+    "homeTitle": "{churchName} — церковь в Павлодаре",
+    "defaultDescription": "Расписание богослужений, новости и контакты церкви."
+  }
+}
