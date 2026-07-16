@@ -11,6 +11,7 @@ import { GalleryItems } from './collections/GalleryItems'
 import { Media } from './collections/Media'
 import { Ministers } from './collections/Ministers'
 import { News } from './collections/News'
+import { Sermons } from './collections/Sermons'
 import { Users } from './collections/Users'
 import { AboutPage } from './globals/AboutPage'
 import { DonatePage } from './globals/DonatePage'
@@ -33,7 +34,7 @@ export default buildConfig({
       titleSuffix: ' • Админка',
     },
   },
-  collections: [News, Ministers, GalleryItems, Media, Users],
+  collections: [News, Sermons, Ministers, GalleryItems, Media, Users],
   globals: [HomePage, Schedule, FirstVisit, AboutPage, MinistriesPage, DonatePage, Settings],
   editor: lexicalEditor(),
   // Язык интерфейса админки

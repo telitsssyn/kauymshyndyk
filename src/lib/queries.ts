@@ -59,6 +59,26 @@ export const getNewsBySlug = cache(async (slug: string) => {
   return result.docs[0] ?? null
 })
 
+export const getSermonsList = cache(async (limit = 12, page = 1) => {
+  const payload = await getPayloadClient()
+  return payload.find({
+    collection: 'sermons',
+    sort: '-date',
+    limit,
+    page,
+  })
+})
+
+export const getSermonBySlug = cache(async (slug: string) => {
+  const payload = await getPayloadClient()
+  const result = await payload.find({
+    collection: 'sermons',
+    where: { slug: { equals: slug } },
+    limit: 1,
+  })
+  return result.docs[0] ?? null
+})
+
 export const getMinisters = cache(async () => {
   const payload = await getPayloadClient()
   const result = await payload.find({

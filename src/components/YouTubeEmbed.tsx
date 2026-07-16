@@ -1,15 +1,4 @@
-const extractVideoId = (url: string): string | null => {
-  const patterns = [
-    /youtube\.com\/watch\?(?:.*&)?v=([\w-]{6,})/,
-    /youtu\.be\/([\w-]{6,})/,
-    /youtube\.com\/(?:shorts|live|embed)\/([\w-]{6,})/,
-  ]
-  for (const pattern of patterns) {
-    const match = url.match(pattern)
-    if (match) return match[1]
-  }
-  return null
-}
+import { extractVideoId } from '@/lib/youtube'
 
 export function YouTubeEmbed({ url, caption }: { url: string; caption?: string | null }) {
   const id = extractVideoId(url)
@@ -19,7 +8,7 @@ export function YouTubeEmbed({ url, caption }: { url: string; caption?: string |
     <figure className="my-6">
       <div className="aspect-video overflow-hidden rounded-2xl bg-ink">
         <iframe
-          src={`https://www.youtube-nocookie.com/embed/${id}`}
+          src={`https://www.youtube.com/embed/${id}?rel=0`}
           title={caption || 'YouTube'}
           loading="lazy"
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"

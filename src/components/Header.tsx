@@ -10,9 +10,10 @@ import { Logo } from './Logo'
 const NAV_ITEMS = [
   { href: '/first-time', key: 'firstTime' },
   { href: '/schedule', key: 'schedule' },
+  { href: '/sermons', key: 'sermons' },
+  { href: '/news', key: 'news' },
   { href: '/about', key: 'about' },
   { href: '/ministries', key: 'ministries' },
-  { href: '/news', key: 'news' },
   { href: '/contacts', key: 'contacts' },
 ] as const
 
@@ -25,7 +26,7 @@ export function Header({ churchName }: { churchName: string }) {
   const closeMenu = () => setOpen(false)
 
   const linkClass = (href: NavHref) =>
-    `whitespace-nowrap rounded-lg px-3 py-2 font-heading text-base font-semibold uppercase tracking-wider transition-colors hover:bg-ice ${
+    `whitespace-nowrap rounded-lg px-2 py-2 font-heading text-sm font-semibold uppercase tracking-wide transition-colors hover:bg-ice xl:px-3 xl:text-base xl:tracking-wider ${
       pathname === href ? 'text-blue-dark' : 'text-ink'
     }`
 
@@ -34,12 +35,14 @@ export function Header({ churchName }: { churchName: string }) {
       <div className="container-site flex items-center justify-between gap-3 py-3">
         <Link href="/" className="flex min-w-0 items-center gap-3">
           <Logo className="h-11 w-11 shrink-0" />
-          <span className="hidden font-heading font-bold uppercase leading-tight tracking-wide sm:line-clamp-2 sm:max-w-[16rem] sm:text-lg">
+          {/* Название показываем только в режиме бургер-меню (sm–lg):
+              рядом с развёрнутой навигацией из 7 пунктов оно не помещается */}
+          <span className="hidden font-heading font-bold uppercase leading-tight tracking-wide sm:line-clamp-2 sm:max-w-[16rem] sm:text-lg lg:hidden">
             {churchName}
           </span>
         </Link>
 
-        <nav aria-label={t('menu')} className="hidden items-center gap-1 xl:flex">
+        <nav aria-label={t('menu')} className="hidden items-center gap-0.5 lg:flex xl:gap-1">
           {NAV_ITEMS.map((item) => (
             <Link key={item.href} href={item.href} className={linkClass(item.href)}>
               {t(item.key)}
@@ -57,7 +60,7 @@ export function Header({ churchName }: { churchName: string }) {
             aria-expanded={open}
             aria-controls="mobile-menu"
             aria-label={open ? t('closeMenu') : t('openMenu')}
-            className="flex h-11 w-11 items-center justify-center rounded-xl border-2 border-ink/15 text-ink xl:hidden"
+            className="flex h-11 w-11 items-center justify-center rounded-xl border-2 border-ink/15 text-ink lg:hidden"
           >
             <svg viewBox="0 0 24 24" className="h-6 w-6" aria-hidden="true" focusable="false">
               {open ? (
@@ -84,7 +87,7 @@ export function Header({ churchName }: { churchName: string }) {
         <nav
           id="mobile-menu"
           aria-label={t('menu')}
-          className="border-t border-ink/10 bg-paper xl:hidden"
+          className="border-t border-ink/10 bg-paper lg:hidden"
         >
           <div className="container-site flex flex-col gap-1 py-3">
             <Link href="/" onClick={closeMenu} className={linkClass('/')}>

@@ -14,6 +14,8 @@ export const routing = defineRouting({
     '/ministries': { ru: '/sluzheniya' },
     '/news': { ru: '/novosti' },
     '/news/[slug]': { ru: '/novosti/[slug]' },
+    '/sermons': { ru: '/propovedi' },
+    '/sermons/[slug]': { ru: '/propovedi/[slug]' },
     '/donate': { ru: '/pozhertvovaniya' },
     '/contacts': { ru: '/kontakty' },
     '/links': { ru: '/link' },

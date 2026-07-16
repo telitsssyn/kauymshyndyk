@@ -68,6 +68,7 @@ export interface Config {
   blocks: {};
   collections: {
     news: News;
+    sermons: Sermon;
     ministers: Minister;
     gallery: Gallery;
     media: Media;
@@ -80,6 +81,7 @@ export interface Config {
   collectionsJoins: {};
   collectionsSelect: {
     news: NewsSelect<false> | NewsSelect<true>;
+    sermons: SermonsSelect<false> | SermonsSelect<true>;
     ministers: MinistersSelect<false> | MinistersSelect<true>;
     gallery: GallerySelect<false> | GallerySelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
@@ -231,6 +233,36 @@ export interface Media {
   };
 }
 /**
+ * Вставьте ссылку на видео с YouTube — обложка подтянется автоматически.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "sermons".
+ */
+export interface Sermon {
+  id: number;
+  title: string;
+  /**
+   * Заполняется автоматически из названия. Менять не обязательно.
+   */
+  slug?: string | null;
+  date: string;
+  /**
+   * Скопируйте адрес видео из браузера, например: https://www.youtube.com/watch?v=XXXXXXXX
+   */
+  youtubeUrl: string;
+  /**
+   * Например: «2Кор.3:1-18». Показывается плашкой на карточке.
+   */
+  scripture?: string | null;
+  preacher?: string | null;
+  /**
+   * Пара предложений о чём проповедь (не обязательно).
+   */
+  description?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
  * Команда церкви на странице «О церкви». Порядок можно менять перетаскиванием.
  *
  * This interface was referenced by `Config`'s JSON-Schema
@@ -334,6 +366,10 @@ export interface PayloadLockedDocument {
         value: number | News;
       } | null)
     | ({
+        relationTo: 'sermons';
+        value: number | Sermon;
+      } | null)
+    | ({
         relationTo: 'ministers';
         value: number | Minister;
       } | null)
@@ -403,6 +439,21 @@ export interface NewsSelect<T extends boolean = true> {
   cover?: T;
   excerpt?: T;
   content?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "sermons_select".
+ */
+export interface SermonsSelect<T extends boolean = true> {
+  title?: T;
+  slug?: T;
+  date?: T;
+  youtubeUrl?: T;
+  scripture?: T;
+  preacher?: T;
+  description?: T;
   updatedAt?: T;
   createdAt?: T;
 }

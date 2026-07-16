@@ -65,6 +65,12 @@ const icons = {
       <path d="M3 10h18M8 3v4M16 3v4" />
     </svg>
   ),
+  play: (
+    <svg viewBox="0 0 24 24" className="h-6 w-6" fill="none" stroke="currentColor" strokeWidth="2" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="9" />
+      <path d="M10 9l5 3-5 3z" fill="currentColor" stroke="none" />
+    </svg>
+  ),
   hello: (
     <svg viewBox="0 0 24 24" className="h-6 w-6" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <circle cx="12" cy="8" r="4" />
@@ -163,6 +169,9 @@ export default async function LinksPage({
           </Link>
           <Link href="/first-time" className="group">
             <Tile icon={icons.hello}>{t('links.firstTime')}</Tile>
+          </Link>
+          <Link href="/sermons" className="group">
+            <Tile icon={icons.play}>{t('links.sermons')}</Tile>
           </Link>
           {settings?.mapLink ? (
             <a href={settings.mapLink} target="_blank" rel="noopener noreferrer" className="group">
