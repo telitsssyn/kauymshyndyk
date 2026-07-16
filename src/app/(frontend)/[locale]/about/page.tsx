@@ -70,7 +70,7 @@ export default async function AboutPage({
                   />
                 ) : null}
                 <h3 className="mt-5 text-xl normal-case tracking-normal">{minister.name}</h3>
-                <p className="mt-1 font-heading text-sm font-semibold uppercase tracking-wider text-teal-dark">
+                <p className="mt-1 font-heading text-sm font-semibold uppercase tracking-wider text-blue-dark">
                   {minister.role}
                 </p>
                 {minister.bio ? (

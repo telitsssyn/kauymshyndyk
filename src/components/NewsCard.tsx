@@ -34,19 +34,19 @@ export function NewsCard({ news }: { news: News }) {
             })}
           </time>
           {news.eventDate ? (
-            <span className="chip bg-teal-dark text-white">{t('news.event')}</span>
+            <span className="chip bg-blue-dark text-white">{t('news.event')}</span>
           ) : null}
         </div>
         <h3 className="text-xl normal-case tracking-normal">
           <Link
             href={{ pathname: '/news/[slug]', params: { slug } }}
-            className="hover:text-teal-dark"
+            className="hover:text-blue-dark"
           >
             {news.title}
           </Link>
         </h3>
         {news.excerpt ? <p className="text-base text-ink-soft">{news.excerpt}</p> : null}
-        <span aria-hidden="true" className="mt-auto pt-1 font-heading text-sm font-semibold uppercase tracking-wider text-teal-dark">
+        <span aria-hidden="true" className="mt-auto pt-1 font-heading text-sm font-semibold uppercase tracking-wider text-blue-dark">
           {t('common.readMore')} →
         </span>
       </div>

@@ -21,7 +21,7 @@ export function Footer({ settings }: { settings: Setting | null }) {
   const year = new Date().getFullYear()
 
   return (
-    <footer className="mt-16 bg-ink text-paper">
+    <footer className="mt-16 bg-navy text-paper">
       <div className="container-site grid gap-10 py-12 sm:grid-cols-2 lg:grid-cols-3">
         <div>
           <div className="flex items-center gap-3">
@@ -37,7 +37,7 @@ export function Footer({ settings }: { settings: Setting | null }) {
         </div>
 
         <nav aria-label={t('footer.navigation')}>
-          <h2 className="font-heading text-base font-semibold uppercase tracking-wider text-teal">
+          <h2 className="font-heading text-base font-semibold uppercase tracking-wider text-blue-light">
             {t('footer.navigation')}
           </h2>
           <ul className="mt-4 grid gap-2">
@@ -55,7 +55,7 @@ export function Footer({ settings }: { settings: Setting | null }) {
         </nav>
 
         <div>
-          <h2 className="font-heading text-base font-semibold uppercase tracking-wider text-teal">
+          <h2 className="font-heading text-base font-semibold uppercase tracking-wider text-blue-light">
             {t('footer.contacts')}
           </h2>
           <ul className="mt-4 grid gap-3 text-base text-paper/85">

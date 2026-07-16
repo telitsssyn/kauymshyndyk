@@ -47,8 +47,8 @@ export default async function MinistriesPage({
                 <RichText data={item.description} />
               </div>
               {item.howToArrange ? (
-                <div className="mt-6 rounded-2xl bg-mint-soft p-5">
-                  <h3 className="font-heading text-sm font-semibold uppercase tracking-wider text-teal-dark">
+                <div className="mt-6 rounded-2xl bg-ice-soft p-5">
+                  <h3 className="font-heading text-sm font-semibold uppercase tracking-wider text-blue-dark">
                     {t('howToArrange')}
                   </h3>
                   <p className="mt-2 whitespace-pre-line text-lg">{item.howToArrange}</p>
@@ -60,7 +60,7 @@ export default async function MinistriesPage({
       ) : null}
 
       {data?.contactNote || settings?.phone ? (
-        <section className="mt-12 rounded-3xl bg-teal-dark p-8 text-white sm:p-10">
+        <section className="mt-12 rounded-3xl bg-navy p-8 text-white sm:p-10">
           <h2 className="text-2xl sm:text-3xl">{t('contactTitle')}</h2>
           {data?.contactNote ? (
             <p className="mt-3 max-w-2xl text-lg text-white/90">{data.contactNote}</p>
@@ -68,7 +68,7 @@ export default async function MinistriesPage({
           {settings?.phone ? (
             <a
               href={`tel:${settings.phone.replace(/[^+\d]/g, '')}`}
-              className="btn mt-6 bg-white text-teal-dark hover:bg-mint"
+              className="btn mt-6 bg-white text-navy hover:bg-ice"
             >
               {settings.phone}
             </a>

@@ -99,12 +99,12 @@ export default async function DonatePage({
       </div>
 
       {data?.note ? (
-        <p className="mt-8 max-w-3xl whitespace-pre-line rounded-2xl bg-mint-soft p-5 text-lg">
+        <p className="mt-8 max-w-3xl whitespace-pre-line rounded-2xl bg-ice-soft p-5 text-lg">
           {data.note}
         </p>
       ) : null}
 
-      <p className="mt-10 text-xl font-semibold text-teal-dark">{t('thankYou')}</p>
+      <p className="mt-10 text-xl font-semibold text-blue-dark">{t('thankYou')}</p>
     </div>
   )
 }

@@ -62,7 +62,7 @@ const run = async () => {
     alt: string,
     width: number,
     height: number,
-    colors: [string, string] = ['#2E9E8F', '#16323A'],
+    colors: [string, string] = ['#2FA8D5', '#2B3384'],
   ) => {
     const data = await placeholderPng(width, height, colors[0], colors[1])
     return payload.create({
@@ -103,22 +103,22 @@ const run = async () => {
     'Заглушка обложки события',
     1200,
     675,
-    ['#3EB8C0', '#1F7A6D'],
+    ['#8FD0EC', '#176E96'],
   )
   const heroImg = await uploadPlaceholder('glavnaya-foto.png', 'Заглушка фото на главной', 1600, 900)
   const aboutImg = await uploadPlaceholder('o-nas-foto.png', 'Заглушка фото «О нас»', 1200, 800, [
-    '#1F7A6D',
-    '#16323A',
+    '#176E96',
+    '#2B3384',
   ])
   const ministerImg = await uploadPlaceholder('sluzhitel-foto.png', 'Заглушка фото служителя', 800, 800)
   const gallery1 = await uploadPlaceholder('galereya-1.png', 'Заглушка фото галереи 1', 1200, 800)
   const gallery2 = await uploadPlaceholder('galereya-2.png', 'Заглушка фото галереи 2', 1200, 800, [
-    '#3EB8C0',
-    '#2E9E8F',
+    '#8FD0EC',
+    '#2FA8D5',
   ])
   const gallery3 = await uploadPlaceholder('galereya-3.png', 'Заглушка фото галереи 3', 1200, 800, [
-    '#16323A',
-    '#2E9E8F',
+    '#2B3384',
+    '#2FA8D5',
   ])
 
   await payload.updateGlobal({

@@ -44,7 +44,7 @@ export default async function FirstTimePage({
               <div className="flex items-start gap-4">
                 <span
                   aria-hidden="true"
-                  className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-mint font-heading text-xl font-bold text-teal-dark"
+                  className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-ice font-heading text-xl font-bold text-blue-dark"
                 >
                   {i + 1}
                 </span>
@@ -70,7 +70,7 @@ export default async function FirstTimePage({
                   {item.question}
                   <span
                     aria-hidden="true"
-                    className="font-heading text-2xl text-teal-dark transition-transform group-open:rotate-45"
+                    className="font-heading text-2xl text-blue-dark transition-transform group-open:rotate-45"
                   >
                     +
                   </span>

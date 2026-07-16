@@ -64,8 +64,8 @@ export default async function SchedulePage({
           <h2 className="text-2xl sm:text-3xl">{t('schedule.specialTitle')}</h2>
           <ul className="mt-6 grid gap-4 sm:grid-cols-2">
             {special.map((service, i) => (
-              <li key={i} className="card border-l-4 border-l-teal p-5">
-                <span className="font-heading text-sm font-semibold uppercase tracking-wider text-teal-dark">
+              <li key={i} className="card border-l-4 border-l-blue p-5">
+                <span className="font-heading text-sm font-semibold uppercase tracking-wider text-blue-dark">
                   {service.dateLabel}
                 </span>
                 <div className="mt-1 flex items-baseline gap-3">
@@ -85,7 +85,7 @@ export default async function SchedulePage({
           <div className="mt-6 grid gap-4">
             {days.map(({ day, services }) => (
               <div key={day} className="card p-5 sm:flex sm:items-start sm:gap-8">
-                <h3 className="w-48 shrink-0 text-xl text-teal-dark">
+                <h3 className="w-48 shrink-0 text-xl text-blue-dark">
                   {t(`schedule.days.${day}`)}
                 </h3>
                 <ul className="mt-3 grid flex-1 gap-3 sm:mt-0">
@@ -112,7 +112,7 @@ export default async function SchedulePage({
           {t('contacts.getInTouch')}:{' '}
           <a
             href={`tel:${settings.phone.replace(/[^+\d]/g, '')}`}
-            className="whitespace-nowrap font-semibold text-teal-dark underline underline-offset-4"
+            className="whitespace-nowrap font-semibold text-blue-dark underline underline-offset-4"
           >
             {settings.phone}
           </a>

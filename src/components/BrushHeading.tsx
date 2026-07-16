@@ -5,17 +5,17 @@ type Props = {
   children: ReactNode
   className?: string
   /** Цвет мазка под текстом */
-  tone?: 'mint' | 'teal'
+  tone?: 'ice' | 'blue'
 }
 
 // Заголовок с «мазком кисти» под текстом — фирменный мотив с обложек церкви.
-export function BrushHeading({ as: Tag = 'h2', children, className = '', tone = 'mint' }: Props) {
+export function BrushHeading({ as: Tag = 'h2', children, className = '', tone = 'ice' }: Props) {
   return (
     <Tag className={`relative ${className}`}>
       <span className="isolate relative inline decoration-clone px-1">
         <svg
           className={`absolute inset-x-0 bottom-[0.05em] -z-10 h-[0.45em] w-full ${
-            tone === 'teal' ? 'text-teal/50' : 'text-mint'
+            tone === 'blue' ? 'text-blue/50' : 'text-ice'
           }`}
           viewBox="0 0 100 14"
           preserveAspectRatio="none"

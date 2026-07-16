@@ -34,7 +34,7 @@ export default async function HomePage({
   return (
     <>
       {/* Приветственный блок */}
-      <section className="bg-mint-soft">
+      <section className="bg-ice-soft">
         <div className="container-site grid items-center gap-8 py-12 sm:py-16 lg:grid-cols-2">
           <div>
             <p className="chip">{t('home.welcome')}</p>
@@ -121,7 +121,7 @@ export default async function HomePage({
 
       {/* Я здесь впервые */}
       <section className="container-site py-12 sm:py-16">
-        <div className="rounded-3xl bg-teal-dark p-8 text-white sm:p-12">
+        <div className="rounded-3xl bg-navy p-8 text-white sm:p-12">
           <h2 className="text-3xl sm:text-4xl">{t('home.firstTimeTitle')}</h2>
           {home?.firstVisitTeaser ? (
             <p className="mt-4 max-w-2xl text-xl text-white/90">{home.firstVisitTeaser}</p>
@@ -129,7 +129,7 @@ export default async function HomePage({
           <div className="mt-8">
             <Link
               href="/first-time"
-              className="btn bg-white text-teal-dark hover:bg-mint"
+              className="btn bg-white text-navy hover:bg-ice"
             >
               {t('home.firstTimeCta')}
             </Link>
@@ -146,7 +146,7 @@ export default async function HomePage({
             </BrushHeading>
             <Link
               href="/news"
-              className="font-heading font-semibold uppercase tracking-wider text-teal-dark hover:text-ink"
+              className="font-heading font-semibold uppercase tracking-wider text-blue-dark hover:text-ink"
             >
               {t('common.allNews')} →
             </Link>

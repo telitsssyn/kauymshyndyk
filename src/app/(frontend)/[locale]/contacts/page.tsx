@@ -65,7 +65,7 @@ export default async function ContactsPage({
                 <dd className="mt-1">
                   <a
                     href={`tel:${settings.phone.replace(/[^+\d]/g, '')}`}
-                    className="whitespace-nowrap font-semibold text-teal-dark underline underline-offset-4"
+                    className="whitespace-nowrap font-semibold text-blue-dark underline underline-offset-4"
                   >
                     {settings.phone}
                   </a>
@@ -80,7 +80,7 @@ export default async function ContactsPage({
                 <dd className="mt-1">
                   <a
                     href={`mailto:${settings.email}`}
-                    className="font-semibold text-teal-dark underline underline-offset-4"
+                    className="font-semibold text-blue-dark underline underline-offset-4"
                   >
                     {settings.email}
                   </a>

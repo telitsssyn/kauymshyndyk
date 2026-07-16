@@ -94,7 +94,7 @@ export default async function NewsDetailPage({
           })}
         </time>
         {news.eventDate ? (
-          <span className="chip bg-teal-dark text-white">
+          <span className="chip bg-blue-dark text-white">
             {t('eventDate', {
               date: format.dateTime(new Date(news.eventDate), {
                 day: 'numeric',

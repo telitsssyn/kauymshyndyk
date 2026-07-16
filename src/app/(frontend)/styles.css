@@ -1,15 +1,16 @@
 @import 'tailwindcss';
 
 @theme {
-  /* Палитра по фирменному стилю: бирюза + тёмный чернильный + тёплый светлый фон */
-  --color-ink: #16323a;
-  --color-ink-soft: #3d565e;
-  --color-teal: #2e9e8f;
-  --color-teal-dark: #1f7a6d;
-  --color-mint: #dcede7;
-  --color-mint-soft: #ecf5f1;
-  --color-paper: #f6f4ef;
-  --color-sky: #3eb8c0;
+  /* Палитра по логотипу: голубой + тёмно-синий, остальное — нейтральное */
+  --color-ink: #1d2733;
+  --color-ink-soft: #4e5d6b;
+  --color-blue: #2fa8d5;
+  --color-blue-light: #8fd0ec;
+  --color-blue-dark: #176e96;
+  --color-navy: #2b3384;
+  --color-ice: #d9edf7;
+  --color-ice-soft: #edf6fb;
+  --color-paper: #f7f6f3;
 
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
   --font-heading: var(--font-oswald), var(--font-inter), ui-sans-serif, sans-serif;
@@ -33,11 +34,11 @@
 
   /* Крупные и заметные фокус-стили — на сайт заходят пожилые люди */
   :focus-visible {
-    @apply outline-3 outline-offset-2 outline-teal-dark;
+    @apply outline-3 outline-offset-2 outline-blue-dark;
   }
 
   ::selection {
-    @apply bg-mint text-ink;
+    @apply bg-ice text-ink;
   }
 }
 
@@ -51,11 +52,11 @@
   }
 
   .btn-primary {
-    @apply btn bg-teal-dark text-white hover:bg-ink;
+    @apply btn bg-blue-dark text-white hover:bg-ink;
   }
 
   .btn-outline {
-    @apply btn border-2 border-teal-dark text-teal-dark hover:bg-mint;
+    @apply btn border-2 border-blue-dark text-blue-dark hover:bg-ice;
   }
 
   .card {
@@ -63,7 +64,7 @@
   }
 
   .chip {
-    @apply inline-flex items-center rounded-lg bg-mint px-3 py-1 font-heading text-sm font-semibold uppercase tracking-wider text-teal-dark;
+    @apply inline-flex items-center rounded-lg bg-ice px-3 py-1 font-heading text-sm font-semibold uppercase tracking-wider text-blue-dark;
   }
 
   /* Текст из редактора (rich text) */
@@ -80,7 +81,7 @@
   }
 
   .prose-church a {
-    @apply font-semibold text-teal-dark underline underline-offset-4 hover:text-ink;
+    @apply font-semibold text-blue-dark underline underline-offset-4 hover:text-ink;
   }
 
   .prose-church ul {
@@ -92,7 +93,7 @@
   }
 
   .prose-church blockquote {
-    @apply border-l-4 border-teal pl-4 italic text-ink-soft;
+    @apply border-l-4 border-blue pl-4 italic text-ink-soft;
   }
 
   .prose-church img {

@@ -10,7 +10,7 @@ export function UpcomingServices({ services }: { services: UpcomingService[] }) 
           key={`${service.timestamp}-${service.title}`}
           className="card flex flex-col gap-2 p-5"
         >
-          <span className="font-heading text-sm font-semibold uppercase tracking-wider text-teal-dark">
+          <span className="font-heading text-sm font-semibold uppercase tracking-wider text-blue-dark">
             {service.dateLabel}
           </span>
           <span className="font-heading text-4xl font-bold text-ink">{service.time}</span>

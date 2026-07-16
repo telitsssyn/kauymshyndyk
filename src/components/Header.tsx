@@ -25,8 +25,8 @@ export function Header({ churchName }: { churchName: string }) {
   const closeMenu = () => setOpen(false)
 
   const linkClass = (href: NavHref) =>
-    `whitespace-nowrap rounded-lg px-3 py-2 font-heading text-base font-semibold uppercase tracking-wider transition-colors hover:bg-mint ${
-      pathname === href ? 'text-teal-dark' : 'text-ink'
+    `whitespace-nowrap rounded-lg px-3 py-2 font-heading text-base font-semibold uppercase tracking-wider transition-colors hover:bg-ice ${
+      pathname === href ? 'text-blue-dark' : 'text-ink'
     }`
 
   return (

@@ -43,7 +43,7 @@ export function SocialLinks({ settings, className = '' }: Props) {
             href={link.href}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex h-11 w-11 items-center justify-center rounded-xl bg-mint text-teal-dark transition-colors hover:bg-teal-dark hover:text-white"
+            className="flex h-11 w-11 items-center justify-center rounded-xl bg-ice text-blue-dark transition-colors hover:bg-blue-dark hover:text-white"
             aria-label={link.label}
           >
             <svg viewBox="0 0 24 24" className="h-6 w-6" aria-hidden="true" focusable="false">
