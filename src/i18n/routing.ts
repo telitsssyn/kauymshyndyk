@@ -16,6 +16,7 @@ export const routing = defineRouting({
     '/news/[slug]': { ru: '/novosti/[slug]' },
     '/donate': { ru: '/pozhertvovaniya' },
     '/contacts': { ru: '/kontakty' },
+    '/links': { ru: '/link' },
   },
 })
 

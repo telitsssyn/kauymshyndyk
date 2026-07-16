@@ -75,6 +75,15 @@ export const Settings: GlobalConfig = {
       },
     },
     {
+      name: 'mapLink',
+      type: 'text',
+      label: 'Ссылка на точку в 2ГИС (маршрут)',
+      admin: {
+        description:
+          'Откройте 2gis.kz, найдите здание церкви, нажмите «Поделиться» → «Скопировать ссылку». Используется для кнопки «Как добраться».',
+      },
+    },
+    {
       name: 'defaultOgImage',
       type: 'upload',
       relationTo: 'media',

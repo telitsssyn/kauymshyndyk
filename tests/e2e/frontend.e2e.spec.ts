@@ -20,4 +20,12 @@ test.describe('Frontend', () => {
     await page.goto('http://localhost:3000/')
     await expect(page).toHaveURL(/\/ru$/)
   })
+
+  test('таплинк открывается без шапки сайта', async ({ page }) => {
+    await page.goto('http://localhost:3000/ru/link')
+
+    await expect(page.locator('h1').first()).toBeVisible()
+    await expect(page.locator('header')).toHaveCount(0)
+    await expect(page.getByText('Расписание служений', { exact: false }).first()).toBeVisible()
+  })
 })

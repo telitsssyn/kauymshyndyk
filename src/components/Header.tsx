@@ -34,7 +34,7 @@ export function Header({ churchName }: { churchName: string }) {
       <div className="container-site flex items-center justify-between gap-3 py-3">
         <Link href="/" className="flex min-w-0 items-center gap-3">
           <Logo className="h-11 w-11 shrink-0" />
-          <span className="line-clamp-2 max-w-[14rem] font-heading text-base font-bold uppercase leading-tight tracking-wide sm:text-lg">
+          <span className="hidden font-heading font-bold uppercase leading-tight tracking-wide sm:line-clamp-2 sm:max-w-[16rem] sm:text-lg">
             {churchName}
           </span>
         </Link>

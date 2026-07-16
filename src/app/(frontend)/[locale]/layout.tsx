@@ -5,8 +5,6 @@ import { Inter, Oswald } from 'next/font/google'
 import { notFound } from 'next/navigation'
 import React from 'react'
 
-import { Footer } from '@/components/Footer'
-import { Header } from '@/components/Header'
 import { routing } from '@/i18n/routing'
 import { getSettings } from '@/lib/queries'
 
@@ -59,25 +57,10 @@ export default async function LocaleLayout({
   }
   setRequestLocale(locale)
 
-  const settings = await getSettings()
-  const t = await getTranslations('common')
-
   return (
     <html lang={locale} className={`${inter.variable} ${oswald.variable}`}>
       <body className="flex min-h-screen flex-col">
-        <NextIntlClientProvider>
-          <a
-            href="#main"
-            className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-[100] focus:rounded-xl focus:bg-ink focus:px-4 focus:py-2 focus:text-paper"
-          >
-            {t('skipToContent')}
-          </a>
-          <Header churchName={settings?.churchName ?? ''} />
-          <main id="main" className="flex-1">
-            {children}
-          </main>
-          <Footer settings={settings} />
-        </NextIntlClientProvider>
+        <NextIntlClientProvider>{children}</NextIntlClientProvider>
       </body>
     </html>
   )

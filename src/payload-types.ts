@@ -823,6 +823,10 @@ export interface Setting {
    */
   mapEmbedUrl?: string | null;
   /**
+   * Откройте 2gis.kz, найдите здание церкви, нажмите «Поделиться» → «Скопировать ссылку». Используется для кнопки «Как добраться».
+   */
+  mapLink?: string | null;
+  /**
    * Показывается при отправке ссылки на сайт в мессенджерах, если у страницы нет своей обложки.
    */
   defaultOgImage?: (number | null) | Media;
@@ -958,6 +962,7 @@ export interface SettingsSelect<T extends boolean = true> {
   instagram?: T;
   youtube?: T;
   mapEmbedUrl?: T;
+  mapLink?: T;
   defaultOgImage?: T;
   updatedAt?: T;
   createdAt?: T;

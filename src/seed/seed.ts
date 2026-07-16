@@ -132,6 +132,7 @@ const run = async () => {
       instagram: 'https://www.instagram.com/kauymshyndyk',
       youtube: 'https://www.youtube.com/channel/UC73qg4buvUlxM1PSOF0trJA',
       mapEmbedUrl: '',
+      mapLink: '',
     },
   })
 
