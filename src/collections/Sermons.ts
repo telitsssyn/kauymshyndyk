@@ -14,7 +14,7 @@ export const Sermons: CollectionConfig = {
     defaultColumns: ['title', 'date', 'scripture'],
     group: 'Контент',
     description:
-      'Вставьте ссылку на видео с YouTube — обложка подтянется автоматически.',
+      'Вставьте ссылку на видео с YouTube — обложка подтянется автоматически. Если видео ещё нет, оставьте ссылку пустой и загрузите картинку: проповедь появится на сайте как анонс.',
   },
   access: {
     read: () => true,
@@ -56,16 +56,25 @@ export const Sermons: CollectionConfig = {
       name: 'youtubeUrl',
       type: 'text',
       label: 'Ссылка на видео YouTube',
-      required: true,
       admin: {
         description:
-          'Скопируйте адрес видео из браузера, например: https://www.youtube.com/watch?v=XXXXXXXX',
+          'Скопируйте адрес видео из браузера, например: https://www.youtube.com/watch?v=XXXXXXXX. Можно оставить пустой, пока записи нет, — тогда загрузите картинку ниже.',
       },
       validate: (value: string | null | undefined) => {
-        if (!value) return 'Укажите ссылку на видео'
+        if (!value) return true
         return /(?:youtube\.com|youtu\.be)\//.test(value)
           ? true
           : 'Ссылка должна вести на YouTube (youtube.com или youtu.be)'
+      },
+    },
+    {
+      name: 'cover',
+      type: 'upload',
+      relationTo: 'media',
+      label: 'Картинка (пока нет видео)',
+      admin: {
+        description:
+          'Показывается вместо видео, пока не заполнена ссылка на YouTube. Когда вставите ссылку — сайт сам переключится на видео.',
       },
     },
     {

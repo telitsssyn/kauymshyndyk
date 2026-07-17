@@ -1,13 +1,15 @@
-import { useFormatter } from 'next-intl'
+import { useFormatter, useTranslations } from 'next-intl'
 
+import { PayloadImage } from '@/components/PayloadImage'
 import { Link } from '@/i18n/navigation'
 import { extractVideoId, youtubeThumbnail } from '@/lib/youtube'
 import type { Sermon } from '@/payload-types'
 
 export function SermonCard({ sermon }: { sermon: Sermon }) {
+  const t = useTranslations('sermons')
   const format = useFormatter()
   const slug = sermon.slug ?? String(sermon.id)
-  const videoId = extractVideoId(sermon.youtubeUrl)
+  const videoId = sermon.youtubeUrl ? extractVideoId(sermon.youtubeUrl) : null
 
   return (
     <article className="card flex flex-col transition-shadow hover:shadow-md">
@@ -18,6 +20,7 @@ export function SermonCard({ sermon }: { sermon: Sermon }) {
         className="relative block"
       >
         {videoId ? (
+          // Обложка готового видео — с серверов YouTube
           // eslint-disable-next-line @next/next/no-img-element
           <img
             src={youtubeThumbnail(videoId)}
@@ -28,17 +31,26 @@ export function SermonCard({ sermon }: { sermon: Sermon }) {
             decoding="async"
             className="aspect-video w-full object-cover"
           />
+        ) : sermon.cover && typeof sermon.cover === 'object' ? (
+          // Анонс: загруженная картинка вместо видео
+          <PayloadImage
+            media={sermon.cover}
+            sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
+            className="aspect-video w-full object-cover"
+          />
         ) : (
           <span className="block aspect-video w-full bg-ice" />
         )}
-        <span
-          aria-hidden="true"
-          className="absolute inset-0 m-auto flex h-14 w-14 items-center justify-center rounded-full bg-ink/70 text-white"
-        >
-          <svg viewBox="0 0 24 24" className="ml-1 h-7 w-7" fill="currentColor">
-            <path d="M8 5v14l11-7z" />
-          </svg>
-        </span>
+        {videoId ? (
+          <span
+            aria-hidden="true"
+            className="absolute inset-0 m-auto flex h-14 w-14 items-center justify-center rounded-full bg-ink/70 text-white"
+          >
+            <svg viewBox="0 0 24 24" className="ml-1 h-7 w-7" fill="currentColor">
+              <path d="M8 5v14l11-7z" />
+            </svg>
+          </span>
+        ) : null}
       </Link>
       <div className="flex flex-1 flex-col gap-3 p-5">
         <div className="flex flex-wrap items-center gap-2">
@@ -52,6 +64,7 @@ export function SermonCard({ sermon }: { sermon: Sermon }) {
           {sermon.scripture ? (
             <span className="chip bg-navy text-white">{sermon.scripture}</span>
           ) : null}
+          {!videoId ? <span className="chip bg-blue text-ink">{t('comingSoon')}</span> : null}
         </div>
         <h3 className="text-xl normal-case tracking-normal">
           <Link

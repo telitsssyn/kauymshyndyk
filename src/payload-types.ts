@@ -233,7 +233,7 @@ export interface Media {
   };
 }
 /**
- * Вставьте ссылку на видео с YouTube — обложка подтянется автоматически.
+ * Вставьте ссылку на видео с YouTube — обложка подтянется автоматически. Если видео ещё нет, оставьте ссылку пустой и загрузите картинку: проповедь появится на сайте как анонс.
  *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "sermons".
@@ -247,9 +247,13 @@ export interface Sermon {
   slug?: string | null;
   date: string;
   /**
-   * Скопируйте адрес видео из браузера, например: https://www.youtube.com/watch?v=XXXXXXXX
+   * Скопируйте адрес видео из браузера, например: https://www.youtube.com/watch?v=XXXXXXXX. Можно оставить пустой, пока записи нет, — тогда загрузите картинку ниже.
    */
-  youtubeUrl: string;
+  youtubeUrl?: string | null;
+  /**
+   * Показывается вместо видео, пока не заполнена ссылка на YouTube. Когда вставите ссылку — сайт сам переключится на видео.
+   */
+  cover?: (number | null) | Media;
   /**
    * Например: «2Кор.3:1-18». Показывается плашкой на карточке.
    */
@@ -451,6 +455,7 @@ export interface SermonsSelect<T extends boolean = true> {
   slug?: T;
   date?: T;
   youtubeUrl?: T;
+  cover?: T;
   scripture?: T;
   preacher?: T;
   description?: T;
