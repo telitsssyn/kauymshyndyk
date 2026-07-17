@@ -98,11 +98,12 @@ export const Sermons: CollectionConfig = {
     },
     {
       name: 'description',
-      type: 'textarea',
-      label: 'Короткое описание',
+      type: 'richText',
+      label: 'Описание',
       localized: true,
       admin: {
-        description: 'Пара предложений о чём проповедь (не обязательно).',
+        description:
+          'Описание под видео: можно выделять жирным, делать заголовки, списки и цитаты (не обязательно).',
       },
     },
   ],

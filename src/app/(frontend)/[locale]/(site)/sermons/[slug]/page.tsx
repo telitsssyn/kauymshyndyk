@@ -3,10 +3,12 @@ import { getFormatter, getTranslations, setRequestLocale } from 'next-intl/serve
 import { notFound } from 'next/navigation'
 
 import { PayloadImage } from '@/components/PayloadImage'
+import { RichText } from '@/components/RichText'
 import { YouTubeEmbed } from '@/components/YouTubeEmbed'
 import { Link } from '@/i18n/navigation'
 import { routing } from '@/i18n/routing'
 import { getSermonBySlug, getSermonsList, getSettings } from '@/lib/queries'
+import { richTextToPlain } from '@/lib/richtext'
 import { extractVideoId, youtubeThumbnail } from '@/lib/youtube'
 
 export const revalidate = 3600
@@ -39,13 +41,14 @@ export async function generateMetadata({
   const ogImage = videoId
     ? youtubeThumbnail(videoId)
     : (cover?.sizes?.hero?.url ?? cover?.url ?? undefined)
+  const description = richTextToPlain(sermon.description)
 
   return {
     title: sermon.title,
-    description: sermon.description || undefined,
+    description,
     openGraph: {
       title: sermon.title,
-      description: sermon.description || undefined,
+      description,
       type: videoId ? 'video.other' : 'article',
       images: ogImage ? [{ url: ogImage }] : undefined,
     },
@@ -76,7 +79,7 @@ export default async function SermonPage({
         '@type': 'VideoObject',
         name: sermon.title,
         uploadDate: sermon.date,
-        description: sermon.description || undefined,
+        description: richTextToPlain(sermon.description),
         thumbnailUrl: youtubeThumbnail(videoId),
         embedUrl: `https://www.youtube.com/embed/${videoId}`,
       }
@@ -139,7 +142,9 @@ export default async function SermonPage({
       )}
 
       {sermon.description ? (
-        <p className="mt-6 whitespace-pre-line text-lg">{sermon.description}</p>
+        <div className="mt-6">
+          <RichText data={sermon.description} />
+        </div>
       ) : null}
 
       <div className="mt-8 flex flex-wrap gap-3">

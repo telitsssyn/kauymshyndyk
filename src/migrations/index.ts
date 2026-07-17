@@ -2,6 +2,7 @@ import * as migration_20260715_111617_initial from './20260715_111617_initial';
 import * as migration_20260716_113954_add_map_link from './20260716_113954_add_map_link';
 import * as migration_20260716_125135_add_sermons from './20260716_125135_add_sermons';
 import * as migration_20260717_110203_sermon_announce from './20260717_110203_sermon_announce';
+import * as migration_20260717_112242_sermon_description_richtext from './20260717_112242_sermon_description_richtext';
 
 export const migrations = [
   {
@@ -22,6 +23,11 @@ export const migrations = [
   {
     up: migration_20260717_110203_sermon_announce.up,
     down: migration_20260717_110203_sermon_announce.down,
-    name: '20260717_110203_sermon_announce'
+    name: '20260717_110203_sermon_announce',
+  },
+  {
+    up: migration_20260717_112242_sermon_description_richtext.up,
+    down: migration_20260717_112242_sermon_description_richtext.down,
+    name: '20260717_112242_sermon_description_richtext'
   },
 ];

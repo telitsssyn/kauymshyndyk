@@ -260,9 +260,23 @@ export interface Sermon {
   scripture?: string | null;
   preacher?: string | null;
   /**
-   * Пара предложений о чём проповедь (не обязательно).
+   * Описание под видео: можно выделять жирным, делать заголовки, списки и цитаты (не обязательно).
    */
-  description?: string | null;
+  description?: {
+    root: {
+      type: string;
+      children: {
+        type: any;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  } | null;
   updatedAt: string;
   createdAt: string;
 }
