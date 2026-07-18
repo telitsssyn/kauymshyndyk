@@ -11,19 +11,12 @@ export function NewsCard({ news }: { news: News }) {
   const slug = news.slug ?? String(news.id)
 
   return (
-    <article className="card flex flex-col transition-shadow hover:shadow-md">
-      <Link
-        href={{ pathname: '/news/[slug]', params: { slug } }}
-        tabIndex={-1}
-        aria-hidden="true"
-        className="block"
-      >
-        <PayloadImage
-          media={news.cover}
-          sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
-          className="aspect-[16/10] w-full object-cover"
-        />
-      </Link>
+    <article className="card relative flex flex-col transition-shadow hover:shadow-md">
+      <PayloadImage
+        media={news.cover}
+        sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
+        className="aspect-[16/10] w-full object-cover"
+      />
       <div className="flex flex-1 flex-col gap-3 p-5">
         <div className="flex flex-wrap items-center gap-2">
           <time className="chip" dateTime={news.publishedDate}>
@@ -38,9 +31,10 @@ export function NewsCard({ news }: { news: News }) {
           ) : null}
         </div>
         <h3 className="text-xl normal-case tracking-normal">
+          {/* Ссылка растянута на всю карточку через after:inset-0 */}
           <Link
             href={{ pathname: '/news/[slug]', params: { slug } }}
-            className="hover:text-blue-dark"
+            className="hover:text-blue-dark after:absolute after:inset-0 after:content-['']"
           >
             {news.title}
           </Link>

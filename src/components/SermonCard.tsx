@@ -12,13 +12,8 @@ export function SermonCard({ sermon }: { sermon: Sermon }) {
   const videoId = sermon.youtubeUrl ? extractVideoId(sermon.youtubeUrl) : null
 
   return (
-    <article className="card flex flex-col transition-shadow hover:shadow-md">
-      <Link
-        href={{ pathname: '/sermons/[slug]', params: { slug } }}
-        tabIndex={-1}
-        aria-hidden="true"
-        className="relative block"
-      >
+    <article className="card relative flex flex-col transition-shadow hover:shadow-md">
+      <div className="relative">
         {videoId ? (
           // Обложка готового видео — с серверов YouTube
           // eslint-disable-next-line @next/next/no-img-element
@@ -51,7 +46,7 @@ export function SermonCard({ sermon }: { sermon: Sermon }) {
             </svg>
           </span>
         ) : null}
-      </Link>
+      </div>
       <div className="flex flex-1 flex-col gap-3 p-5">
         <div className="flex flex-wrap items-center gap-2">
           <time className="chip" dateTime={sermon.date}>
@@ -67,9 +62,10 @@ export function SermonCard({ sermon }: { sermon: Sermon }) {
           {!videoId ? <span className="chip bg-blue text-ink">{t('comingSoon')}</span> : null}
         </div>
         <h3 className="text-xl normal-case tracking-normal">
+          {/* Ссылка растянута на всю карточку через after:inset-0 */}
           <Link
             href={{ pathname: '/sermons/[slug]', params: { slug } }}
-            className="hover:text-blue-dark"
+            className="hover:text-blue-dark after:absolute after:inset-0 after:content-['']"
           >
             {sermon.title}
           </Link>

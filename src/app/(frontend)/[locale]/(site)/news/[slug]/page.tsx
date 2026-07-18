@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { getFormatter, getTranslations, setRequestLocale } from 'next-intl/server'
 import { notFound } from 'next/navigation'
 
+import { Breadcrumbs } from '@/components/Breadcrumbs'
 import { PayloadImage } from '@/components/PayloadImage'
 import { RichText } from '@/components/RichText'
 import { Link } from '@/i18n/navigation'
@@ -58,9 +59,10 @@ export default async function NewsDetailPage({
   const { locale, slug } = await params
   setRequestLocale(locale)
 
-  const [news, t, format] = await Promise.all([
+  const [news, t, tNav, format] = await Promise.all([
     getNewsBySlug(slug),
     getTranslations('news'),
+    getTranslations('nav'),
     getFormatter(),
   ])
 
@@ -84,6 +86,14 @@ export default async function NewsDetailPage({
           dangerouslySetInnerHTML={{ __html: JSON.stringify(eventJsonLd) }}
         />
       ) : null}
+
+      <Breadcrumbs
+        items={[
+          { href: '/', label: tNav('home') },
+          { href: '/news', label: t('title') },
+          { label: news.title },
+        ]}
+      />
 
       <div className="flex flex-wrap items-center gap-2">
         <time className="chip" dateTime={news.publishedDate}>

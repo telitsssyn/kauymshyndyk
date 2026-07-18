@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { getFormatter, getTranslations, setRequestLocale } from 'next-intl/server'
 import { notFound } from 'next/navigation'
 
+import { Breadcrumbs } from '@/components/Breadcrumbs'
 import { PayloadImage } from '@/components/PayloadImage'
 import { RichText } from '@/components/RichText'
 import { YouTubeEmbed } from '@/components/YouTubeEmbed'
@@ -63,10 +64,11 @@ export default async function SermonPage({
   const { locale, slug } = await params
   setRequestLocale(locale)
 
-  const [sermon, settings, t, format] = await Promise.all([
+  const [sermon, settings, t, tNav, format] = await Promise.all([
     getSermonBySlug(slug),
     getSettings(),
     getTranslations('sermons'),
+    getTranslations('nav'),
     getFormatter(),
   ])
 
@@ -93,6 +95,14 @@ export default async function SermonPage({
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
       ) : null}
+
+      <Breadcrumbs
+        items={[
+          { href: '/', label: tNav('home') },
+          { href: '/sermons', label: t('title') },
+          { label: sermon.title },
+        ]}
+      />
 
       <div className="flex flex-wrap items-center gap-2">
         <time className="chip" dateTime={sermon.date}>

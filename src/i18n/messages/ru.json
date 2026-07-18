@@ -15,6 +15,7 @@
   },
   "common": {
     "skipToContent": "Перейти к содержимому",
+    "breadcrumbs": "Путь по сайту",
     "readMore": "Читать дальше",
     "allNews": "Все новости",
     "learnMore": "Подробнее",
