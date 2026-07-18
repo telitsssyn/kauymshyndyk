@@ -57,8 +57,13 @@ export default async function LocaleLayout({
   }
   setRequestLocale(locale)
 
+  // data-scroll-behavior нужен Next.js, чтобы отключать плавную прокрутку при переходах между страницами
   return (
-    <html lang={locale} className={`${inter.variable} ${oswald.variable}`}>
+    <html
+      lang={locale}
+      data-scroll-behavior="smooth"
+      className={`${inter.variable} ${oswald.variable}`}
+    >
       <body className="flex min-h-screen flex-col">
         <NextIntlClientProvider>{children}</NextIntlClientProvider>
       </body>

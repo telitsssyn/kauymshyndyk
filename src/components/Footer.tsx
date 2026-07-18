@@ -83,8 +83,25 @@ export function Footer({ settings }: { settings: Setting | null }) {
       </div>
 
       <div className="border-t border-paper/15">
-        <div className="container-site py-4 text-sm text-paper/60">
-          © {year} {settings?.churchName}. {t('footer.rights')}.
+        <div className="container-site flex flex-col gap-2 py-4 text-sm text-paper/60 sm:flex-row sm:items-center sm:justify-between">
+          <p>
+            © {year} {settings?.churchName}. {t('footer.rights')}.
+          </p>
+          <ul className="flex flex-wrap items-center gap-x-3 gap-y-1">
+            <li>
+              <Link href="/privacy" className="underline-offset-4 hover:underline">
+                {t('footer.privacy')}
+              </Link>
+            </li>
+            <li aria-hidden="true" className="hidden sm:block">
+              ·
+            </li>
+            <li>
+              <Link href="/terms" className="underline-offset-4 hover:underline">
+                {t('footer.terms')}
+              </Link>
+            </li>
+          </ul>
         </div>
       </div>
     </footer>

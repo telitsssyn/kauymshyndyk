@@ -107,14 +107,16 @@ export default async function SchedulePage({
         )}
       </section>
 
-      {settings?.phone ? (
+      {settings?.instagram ? (
         <p className="mt-10 text-lg text-ink-soft">
           {t('contacts.getInTouch')}:{' '}
           <a
-            href={`tel:${settings.phone.replace(/[^+\d]/g, '')}`}
+            href={settings.instagram}
+            target="_blank"
+            rel="noopener noreferrer"
             className="whitespace-nowrap font-semibold text-blue-dark underline underline-offset-4"
           >
-            {settings.phone}
+            Instagram
           </a>
         </p>
       ) : null}

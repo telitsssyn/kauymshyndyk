@@ -59,18 +59,20 @@ export default async function MinistriesPage({
         </div>
       ) : null}
 
-      {data?.contactNote || settings?.phone ? (
+      {data?.contactNote || settings?.instagram ? (
         <section className="mt-12 rounded-3xl bg-navy p-8 text-white sm:p-10">
           <h2 className="text-2xl sm:text-3xl">{t('contactTitle')}</h2>
           {data?.contactNote ? (
             <p className="mt-3 max-w-2xl text-lg text-white/90">{data.contactNote}</p>
           ) : null}
-          {settings?.phone ? (
+          {settings?.instagram ? (
             <a
-              href={`tel:${settings.phone.replace(/[^+\d]/g, '')}`}
+              href={settings.instagram}
+              target="_blank"
+              rel="noopener noreferrer"
               className="btn mt-6 bg-white text-navy hover:bg-ice"
             >
-              {settings.phone}
+              {t('writeInstagram')}
             </a>
           ) : null}
         </section>
