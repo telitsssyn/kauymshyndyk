@@ -84,7 +84,7 @@ const run = async () => {
     const password = process.env.ADMIN_PASSWORD || 'admin12345'
     await payload.create({
       collection: 'users',
-      data: { email, password, name: 'Администратор' },
+      data: { email, password, name: 'Администратор', role: 'admin' },
     })
     payload.logger.info(`Создан администратор: ${email} / ${password} — смените пароль после входа!`)
   }

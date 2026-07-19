@@ -51,3 +51,6 @@ node_modules/
 
 # локальная dev-база (embedded-postgres)
 /.pgdata
+
+.vercel
+.env*
