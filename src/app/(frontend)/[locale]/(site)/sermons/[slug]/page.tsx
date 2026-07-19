@@ -7,26 +7,13 @@ import { PayloadImage } from '@/components/PayloadImage'
 import { RichText } from '@/components/RichText'
 import { YouTubeEmbed } from '@/components/YouTubeEmbed'
 import { Link } from '@/i18n/navigation'
-import { routing } from '@/i18n/routing'
-import { getSermonBySlug, getSermonsList, getSettings } from '@/lib/queries'
+import { getSermonBySlug, getSettings } from '@/lib/queries'
 import { richTextToPlain } from '@/lib/richtext'
 import { extractVideoId, youtubeThumbnail } from '@/lib/youtube'
 
-export const revalidate = 3600
-
-export async function generateStaticParams() {
-  try {
-    const sermons = await getSermonsList(50)
-    return routing.locales.flatMap((locale) =>
-      sermons.docs
-        .filter((sermon) => sermon.slug)
-        .map((sermon) => ({ locale, slug: sermon.slug as string })),
-    )
-  } catch {
-    // Во время сборки без базы данных просто не пререндерим
-    return []
-  }
-}
+// Страница всегда рендерится на сервере: при пустой таблице на момент сборки
+// Next иначе считает маршрут статическим и падает с DYNAMIC_SERVER_USAGE.
+export const dynamic = 'force-dynamic'
 
 export async function generateMetadata({
   params,

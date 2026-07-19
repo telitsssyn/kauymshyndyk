@@ -6,24 +6,11 @@ import { Breadcrumbs } from '@/components/Breadcrumbs'
 import { PayloadImage } from '@/components/PayloadImage'
 import { RichText } from '@/components/RichText'
 import { Link } from '@/i18n/navigation'
-import { getNewsBySlug, getNewsList } from '@/lib/queries'
-import { routing } from '@/i18n/routing'
+import { getNewsBySlug } from '@/lib/queries'
 
-export const revalidate = 3600
-
-export async function generateStaticParams() {
-  try {
-    const news = await getNewsList(50)
-    return routing.locales.flatMap((locale) =>
-      news.docs
-        .filter((item) => item.slug)
-        .map((item) => ({ locale, slug: item.slug as string })),
-    )
-  } catch {
-    // Во время сборки без базы данных просто не пререндерим
-    return []
-  }
-}
+// Страница всегда рендерится на сервере: при пустой таблице на момент сборки
+// Next иначе считает маршрут статическим и падает с DYNAMIC_SERVER_USAGE.
+export const dynamic = 'force-dynamic'
 
 export async function generateMetadata({
   params,
