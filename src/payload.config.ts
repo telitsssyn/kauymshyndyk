@@ -58,14 +58,13 @@ export default buildConfig({
   }),
   sharp,
   plugins: [
-    // На Vercel файлы хранятся в Blob; локально — в папке media
-    ...(process.env.BLOB_READ_WRITE_TOKEN
-      ? [
-          vercelBlobStorage({
-            collections: { media: true },
-            token: process.env.BLOB_READ_WRITE_TOKEN,
-          }),
-        ]
-      : []),
+    // На Vercel файлы хранятся в Blob; локально (без токена) — в папке media.
+    // Плагин подключён всегда, чтобы importMap не зависел от окружения:
+    // его клиентский компонент должен попадать в карту и при локальной генерации.
+    vercelBlobStorage({
+      enabled: Boolean(process.env.BLOB_READ_WRITE_TOKEN),
+      collections: { media: true },
+      token: process.env.BLOB_READ_WRITE_TOKEN || '',
+    }),
   ],
 })
