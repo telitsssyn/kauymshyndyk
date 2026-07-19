@@ -5,6 +5,7 @@ import { notFound } from 'next/navigation'
 import { Breadcrumbs } from '@/components/Breadcrumbs'
 import { PayloadImage } from '@/components/PayloadImage'
 import { RichText } from '@/components/RichText'
+import { SermonNotes } from '@/components/SermonNotes'
 import { YouTubeEmbed } from '@/components/YouTubeEmbed'
 import { Link } from '@/i18n/navigation'
 import { getSermonBySlug, getSettings } from '@/lib/queries'
@@ -143,6 +144,8 @@ export default async function SermonPage({
           <RichText data={sermon.description} />
         </div>
       ) : null}
+
+      <SermonNotes slug={slug} />
 
       <div className="mt-8 flex flex-wrap gap-3">
         <Link href="/sermons" className="btn-outline">
