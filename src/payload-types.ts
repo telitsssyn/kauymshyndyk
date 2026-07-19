@@ -852,19 +852,24 @@ export interface DonatePage {
     };
     [k: string]: unknown;
   } | null;
-  kaspiNumber?: string | null;
   /**
-   * Ссылка на перевод из приложения Kaspi (если есть).
+   * Картинка с QR-кодом (например, Halyk QR). Показывается крупно в левой карточке.
    */
-  kaspiLink?: string | null;
   qrCode?: (number | null) | Media;
-  requisites?:
+  /**
+   * Например, название получателя и адрес. Каждая строка подписи — с новой строки.
+   */
+  qrCaption?: string | null;
+  /**
+   * Например: «Пожертвование через приложение Halyk Bank».
+   */
+  instructionTitle?: string | null;
+  /**
+   * Показываются пронумерованным списком в правой карточке.
+   */
+  steps?:
     | {
-        /**
-         * Например: «БИН», «ИИК», «Банк», «Получатель».
-         */
-        label: string;
-        value: string;
+        text: string;
         id?: string | null;
       }[]
     | null;
@@ -1009,14 +1014,13 @@ export interface MinistriesPageSelect<T extends boolean = true> {
  */
 export interface DonatePageSelect<T extends boolean = true> {
   purpose?: T;
-  kaspiNumber?: T;
-  kaspiLink?: T;
   qrCode?: T;
-  requisites?:
+  qrCaption?: T;
+  instructionTitle?: T;
+  steps?:
     | T
     | {
-        label?: T;
-        value?: T;
+        text?: T;
         id?: T;
       };
   note?: T;

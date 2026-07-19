@@ -2,7 +2,6 @@ import type { Metadata } from 'next'
 import { getTranslations, setRequestLocale } from 'next-intl/server'
 
 import { BrushHeading } from '@/components/BrushHeading'
-import { CopyButton } from '@/components/CopyButton'
 import { PayloadImage } from '@/components/PayloadImage'
 import { RichText } from '@/components/RichText'
 import { getDonatePage } from '@/lib/queries'
@@ -24,7 +23,10 @@ export default async function DonatePage({
 
   const [data, t] = await Promise.all([getDonatePage(), getTranslations('donate')])
 
-  const hasKaspi = Boolean(data?.kaspiNumber || data?.kaspiLink)
+  const qr = data?.qrCode && typeof data.qrCode === 'object' ? data.qrCode : null
+  const steps = data?.steps ?? []
+  const hasQrCard = Boolean(qr || data?.qrCaption)
+  const hasStepsCard = Boolean(data?.instructionTitle || steps.length > 0)
 
   return (
     <div className="container-site py-10 sm:py-14">
@@ -38,62 +40,41 @@ export default async function DonatePage({
         </div>
       ) : null}
 
-      <div className="mt-10 grid gap-6 lg:grid-cols-2">
-        {hasKaspi ? (
-          <section className="card p-6 sm:p-8">
-            <h2 className="text-2xl sm:text-3xl">{t('kaspiTitle')}</h2>
-            {data?.kaspiNumber ? (
-              <div className="mt-5">
-                <p className="font-heading text-sm font-semibold uppercase tracking-wider text-ink-soft">
-                  {t('kaspiNumber')}
-                </p>
-                <div className="mt-2 flex flex-wrap items-center gap-3">
-                  <span className="font-heading text-2xl font-bold">{data.kaspiNumber}</span>
-                  <CopyButton value={data.kaspiNumber} />
-                </div>
-              </div>
+      <div className="mt-10 grid gap-6 md:grid-cols-2">
+        {hasQrCard ? (
+          <section className="card flex flex-col items-center p-6 text-center sm:p-8">
+            <h2 className="text-2xl sm:text-3xl">{t('qrTitle')}</h2>
+            {qr ? (
+              <PayloadImage
+                media={qr}
+                sizes="320px"
+                className="mt-6 w-64 rounded-2xl bg-white object-contain p-2 ring-1 ring-ink/10 sm:w-72"
+              />
             ) : null}
-            {data?.kaspiLink ? (
-              <a
-                href={data.kaspiLink}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="btn-primary mt-6"
-              >
-                {t('kaspiButton')}
-              </a>
-            ) : null}
-            {data?.qrCode && typeof data.qrCode === 'object' ? (
-              <div className="mt-6">
-                <p className="font-heading text-sm font-semibold uppercase tracking-wider text-ink-soft">
-                  {t('qrTitle')}
-                </p>
-                <PayloadImage
-                  media={data.qrCode}
-                  sizes="256px"
-                  className="mt-3 h-56 w-56 rounded-2xl bg-white object-contain p-2 ring-1 ring-ink/10"
-                />
-              </div>
+            {data?.qrCaption ? (
+              <p className="mt-6 whitespace-pre-line font-heading text-lg font-semibold">
+                {data.qrCaption}
+              </p>
             ) : null}
           </section>
         ) : null}
 
-        {(data?.requisites ?? []).length > 0 ? (
+        {hasStepsCard ? (
           <section className="card p-6 sm:p-8">
-            <h2 className="text-2xl sm:text-3xl">{t('requisitesTitle')}</h2>
-            <dl className="mt-5 grid gap-4">
-              {(data?.requisites ?? []).map((req, i) => (
-                <div key={req.id ?? i} className="grid gap-1 border-b border-ink/10 pb-3 last:border-0">
-                  <dt className="font-heading text-sm font-semibold uppercase tracking-wider text-ink-soft">
-                    {req.label}
-                  </dt>
-                  <dd className="flex flex-wrap items-center gap-3 text-lg font-semibold break-all">
-                    {req.value}
-                    <CopyButton value={req.value} />
-                  </dd>
-                </div>
+            <h2 className="text-2xl sm:text-3xl">{data?.instructionTitle || t('howTitle')}</h2>
+            <ol className="mt-6 space-y-4">
+              {steps.map((step, i) => (
+                <li key={step.id ?? i} className="flex items-start gap-4">
+                  <span
+                    aria-hidden="true"
+                    className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-ice font-heading text-lg font-bold text-blue-dark"
+                  >
+                    {i + 1}
+                  </span>
+                  <span className="pt-1 text-lg">{step.text}</span>
+                </li>
               ))}
-            </dl>
+            </ol>
           </section>
         ) : null}
       </div>

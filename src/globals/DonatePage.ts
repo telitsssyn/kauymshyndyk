@@ -19,57 +19,52 @@ export const DonatePage: GlobalConfig = {
       localized: true,
     },
     {
-      type: 'row',
-      fields: [
-        {
-          name: 'kaspiNumber',
-          type: 'text',
-          label: 'Номер Kaspi',
-        },
-        {
-          name: 'kaspiLink',
-          type: 'text',
-          label: 'Ссылка Kaspi',
-          admin: {
-            description: 'Ссылка на перевод из приложения Kaspi (если есть).',
-          },
-        },
-      ],
-    },
-    {
       name: 'qrCode',
       type: 'upload',
       relationTo: 'media',
       label: 'QR-код для пожертвования',
+      admin: {
+        description:
+          'Картинка с QR-кодом (например, Halyk QR). Показывается крупно в левой карточке.',
+      },
     },
     {
-      name: 'requisites',
+      name: 'qrCaption',
+      type: 'textarea',
+      label: 'Подпись под QR-кодом',
+      localized: true,
+      admin: {
+        description:
+          'Например, название получателя и адрес. Каждая строка подписи — с новой строки.',
+      },
+    },
+    {
+      name: 'instructionTitle',
+      type: 'text',
+      label: 'Заголовок инструкции',
+      localized: true,
+      admin: {
+        description: 'Например: «Пожертвование через приложение Halyk Bank».',
+      },
+    },
+    {
+      name: 'steps',
       type: 'array',
-      label: 'Банковские реквизиты',
+      label: 'Шаги инструкции',
       labels: {
-        singular: 'Реквизит',
-        plural: 'Реквизиты',
+        singular: 'Шаг',
+        plural: 'Шаги',
+      },
+      admin: {
+        description: 'Показываются пронумерованным списком в правой карточке.',
       },
       fields: [
         {
-          type: 'row',
-          fields: [
-            {
-              name: 'label',
-              type: 'text',
-              label: 'Название',
-              required: true,
-              admin: {
-                description: 'Например: «БИН», «ИИК», «Банк», «Получатель».',
-              },
-            },
-            {
-              name: 'value',
-              type: 'text',
-              label: 'Значение',
-              required: true,
-            },
-          ],
+          name: 'text',
+          type: 'text',
+          label: 'Текст шага',
+          required: true,
+          localized: true,
         },
       ],
     },
