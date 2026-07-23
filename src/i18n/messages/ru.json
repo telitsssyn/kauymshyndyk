@@ -64,6 +64,15 @@
     "ministersTitle": "Служители",
     "galleryTitle": "Фотогалерея"
   },
+  "gallery": {
+    "open": "Открыть фото во весь экран",
+    "openNamed": "Открыть во весь экран: {caption}",
+    "viewer": "Просмотр фотографий",
+    "close": "Закрыть просмотр",
+    "previous": "Предыдущее фото",
+    "next": "Следующее фото",
+    "counter": "{current} из {total}"
+  },
   "ministries": {
     "title": "Служения",
     "howToArrange": "Как договориться",

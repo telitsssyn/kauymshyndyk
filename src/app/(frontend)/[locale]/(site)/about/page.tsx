@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { getTranslations, setRequestLocale } from 'next-intl/server'
 
 import { BrushHeading } from '@/components/BrushHeading'
+import { Gallery } from '@/components/Gallery'
 import { PayloadImage } from '@/components/PayloadImage'
 import { RichText } from '@/components/RichText'
 import { getAboutPage, getGallery, getMinisters } from '@/lib/queries'
@@ -89,24 +90,7 @@ export default async function AboutPage({
           <BrushHeading as="h2" className="text-3xl sm:text-4xl">
             {t('galleryTitle')}
           </BrushHeading>
-          <ul className="mt-8 grid grid-cols-2 gap-4 sm:grid-cols-3">
-            {gallery.map((item) => (
-              <li key={item.id}>
-                <figure>
-                  {item.image && typeof item.image === 'object' ? (
-                    <PayloadImage
-                      media={item.image}
-                      sizes="(min-width: 640px) 33vw, 50vw"
-                      className="aspect-[4/3] w-full rounded-2xl object-cover"
-                    />
-                  ) : null}
-                  {item.caption ? (
-                    <figcaption className="mt-2 text-base text-ink-soft">{item.caption}</figcaption>
-                  ) : null}
-                </figure>
-              </li>
-            ))}
-          </ul>
+          <Gallery items={gallery} />
         </section>
       ) : null}
     </div>

@@ -6,12 +6,37 @@ type Props = {
   sizes?: string
   className?: string
   priority?: boolean
+  /**
+   * Самый крупный вариант без выбора по srcSet — для полноэкранного просмотра,
+   * где человек специально открыл фото, чтобы рассмотреть детали.
+   */
+  full?: boolean
 }
 
 // Отдаём размеры, сгенерированные Payload (webp), без оптимизатора Next —
 // чтобы не упираться в лимиты трансформаций на бесплатном тарифе Vercel.
-export function PayloadImage({ media, sizes = '100vw', className, priority }: Props) {
+export function PayloadImage({ media, sizes = '100vw', className, priority, full }: Props) {
   if (!media || typeof media === 'number' || !media.url) return null
+
+  if (full) {
+    // hero (webp 1600px) лучше оригинала: у настоящих фото с телефона
+    // оригинал весит мегабайты, а на экране разницы не видно
+    const hero = media.sizes?.hero
+    const src = hero?.url ?? media.url
+    return (
+      // eslint-disable-next-line @next/next/no-img-element
+      <img
+        src={src}
+        alt={media.alt}
+        width={(hero?.url ? hero.width : media.width) ?? undefined}
+        height={(hero?.url ? hero.height : media.height) ?? undefined}
+        loading={priority ? 'eager' : 'lazy'}
+        fetchPriority={priority ? 'high' : undefined}
+        decoding="async"
+        className={className}
+      />
+    )
+  }
 
   const entries: string[] = []
   const s = media.sizes
