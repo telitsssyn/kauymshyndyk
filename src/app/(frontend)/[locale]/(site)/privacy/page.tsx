@@ -27,7 +27,7 @@ export default async function PrivacyPage({
 
   return (
     <div className="container-site py-10 sm:py-14">
-      <BrushHeading as="h1" className="text-4xl sm:text-5xl">
+      <BrushHeading as="h1" className="text-3xl sm:text-5xl">
         {t('privacyTitle')}
       </BrushHeading>
       <p className="mt-4 text-base text-ink-soft">{t('updated', { date: LAST_UPDATED })}</p>

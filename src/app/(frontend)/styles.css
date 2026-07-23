@@ -30,6 +30,8 @@
   h3,
   h4 {
     @apply font-heading font-semibold uppercase leading-tight tracking-wide text-balance;
+    /* Длинные слова («конфиденциальности») переносятся, а не вылезают за экран */
+    @apply hyphens-auto break-words;
   }
 
   /* Крупные и заметные фокус-стили — на сайт заходят пожилые люди */
