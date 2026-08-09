@@ -23,6 +23,10 @@ export default async function ContactsPage({
 
   const [settings, t] = await Promise.all([getSettings(), getTranslations()])
 
+  // Соцсети показываем как ещё один способ связи, но только если они заданы:
+  // иначе в карточке остался бы заголовок с пустотой под ним.
+  const hasSocial = Boolean(settings?.instagram || settings?.youtube)
+
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'Church',
@@ -45,57 +49,59 @@ export default async function ContactsPage({
         {t('contacts.title')}
       </BrushHeading>
 
-      <div className="mt-10 grid gap-6 lg:grid-cols-2">
-        <section className="card p-6 sm:p-8">
-          <h2 className="text-2xl sm:text-3xl">{t('contacts.getInTouch')}</h2>
-          <dl className="mt-6 grid gap-5 text-lg">
-            {settings?.address ? (
-              <div>
-                <dt className="font-heading text-sm font-semibold uppercase tracking-wider text-ink-soft">
-                  {t('common.address')}
-                </dt>
-                <dd className="mt-1">{settings.address}</dd>
-              </div>
-            ) : null}
-            {settings?.phone ? (
-              <div>
-                <dt className="font-heading text-sm font-semibold uppercase tracking-wider text-ink-soft">
-                  {t('common.phone')}
-                </dt>
-                <dd className="mt-1">
-                  <a
-                    href={`tel:${settings.phone.replace(/[^+\d]/g, '')}`}
-                    className="whitespace-nowrap font-semibold text-blue-dark underline underline-offset-4"
-                  >
-                    {settings.phone}
-                  </a>
-                </dd>
-              </div>
-            ) : null}
-            {settings?.email ? (
-              <div>
-                <dt className="font-heading text-sm font-semibold uppercase tracking-wider text-ink-soft">
-                  {t('common.email')}
-                </dt>
-                <dd className="mt-1">
-                  <a
-                    href={`mailto:${settings.email}`}
-                    className="font-semibold text-blue-dark underline underline-offset-4"
-                  >
-                    {settings.email}
-                  </a>
-                </dd>
-              </div>
-            ) : null}
-          </dl>
-        </section>
-
-        <section className="card p-6 sm:p-8">
-          <h2 className="text-2xl sm:text-3xl">{t('contacts.socialTitle')}</h2>
-          <SocialLinks settings={settings} className="mt-6" />
-          <p className="mt-6 text-lg text-ink-soft">{t('contacts.visitUs')}</p>
-        </section>
-      </div>
+      <section className="card mt-10 p-6 sm:p-8">
+        <h2 className="text-2xl sm:text-3xl">{t('contacts.getInTouch')}</h2>
+        <dl className="mt-6 grid gap-5 text-lg sm:grid-cols-2">
+          {settings?.address ? (
+            <div>
+              <dt className="font-heading text-sm font-semibold uppercase tracking-wider text-ink-soft">
+                {t('common.address')}
+              </dt>
+              <dd className="mt-1">{settings.address}</dd>
+            </div>
+          ) : null}
+          {settings?.phone ? (
+            <div>
+              <dt className="font-heading text-sm font-semibold uppercase tracking-wider text-ink-soft">
+                {t('common.phone')}
+              </dt>
+              <dd className="mt-1">
+                <a
+                  href={`tel:${settings.phone.replace(/[^+\d]/g, '')}`}
+                  className="whitespace-nowrap font-semibold text-blue-dark underline underline-offset-4"
+                >
+                  {settings.phone}
+                </a>
+              </dd>
+            </div>
+          ) : null}
+          {settings?.email ? (
+            <div>
+              <dt className="font-heading text-sm font-semibold uppercase tracking-wider text-ink-soft">
+                {t('common.email')}
+              </dt>
+              <dd className="mt-1">
+                <a
+                  href={`mailto:${settings.email}`}
+                  className="font-semibold text-blue-dark underline underline-offset-4"
+                >
+                  {settings.email}
+                </a>
+              </dd>
+            </div>
+          ) : null}
+          {hasSocial ? (
+            <div>
+              <dt className="font-heading text-sm font-semibold uppercase tracking-wider text-ink-soft">
+                {t('contacts.socialTitle')}
+              </dt>
+              <dd className="mt-2">
+                <SocialLinks settings={settings} />
+              </dd>
+            </div>
+          ) : null}
+        </dl>
+      </section>
 
       {settings?.mapEmbedUrl ? (
         <section className="mt-10">
