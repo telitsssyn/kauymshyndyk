@@ -8,13 +8,26 @@ import { RichText } from '@/components/RichText'
 import { SermonNotes } from '@/components/SermonNotes'
 import { YouTubeEmbed } from '@/components/YouTubeEmbed'
 import { Link } from '@/i18n/navigation'
-import { getSermonBySlug, getSettings } from '@/lib/queries'
+import { getSermonBySlug, getSermonsList, getSettings } from '@/lib/queries'
 import { richTextToPlain } from '@/lib/richtext'
 import { extractVideoId, youtubeThumbnail } from '@/lib/youtube'
 
-// Страница всегда рендерится на сервере: при пустой таблице на момент сборки
-// Next иначе считает маршрут статическим и падает с DYNAMIC_SERVER_USAGE.
-export const dynamic = 'force-dynamic'
+// Готовая страница отдаётся из кэша, а не пересобирается на каждый заход:
+// при сохранении проповеди в админке кэш сбрасывается сразу (lib/revalidate.ts),
+// час здесь — страховка на случай изменений в обход хуков.
+export const revalidate = 3600
+
+// Проповеди, существующие на момент сборки, рендерятся заранее; всё, что
+// появится позже, соберётся при первом обращении и тоже попадёт в кэш.
+export async function generateStaticParams() {
+  try {
+    const sermons = await getSermonsList(100)
+    return sermons.docs.flatMap((item) => (item.slug ? [{ slug: item.slug }] : []))
+  } catch {
+    // На сборке без базы просто нечего готовить заранее
+    return []
+  }
+}
 
 export async function generateMetadata({
   params,

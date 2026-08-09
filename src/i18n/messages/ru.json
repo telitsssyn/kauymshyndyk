@@ -5,7 +5,6 @@
     "schedule": "Расписание",
     "sermons": "Проповеди",
     "about": "О церкви",
-    "ministries": "Служения",
     "news": "Новости",
     "donate": "Пожертвовать",
     "contacts": "Контакты",
@@ -72,12 +71,6 @@
     "previous": "Предыдущее фото",
     "next": "Следующее фото",
     "counter": "{current} из {total}"
-  },
-  "ministries": {
-    "title": "Служения",
-    "howToArrange": "Как договориться",
-    "contactTitle": "Остались вопросы?",
-    "writeInstagram": "Написать нам в Instagram"
   },
   "news": {
     "title": "Новости и события",

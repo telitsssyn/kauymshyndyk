@@ -6,6 +6,7 @@ import * as migration_20260717_112242_sermon_description_richtext from './202607
 import * as migration_20260719_172155_add_user_roles from './20260719_172155_add_user_roles';
 import * as migration_20260719_191051_drop_kaspi_requisites from './20260719_191051_drop_kaspi_requisites';
 import * as migration_20260719_191110_donate_halyk_qr from './20260719_191110_donate_halyk_qr';
+import * as migration_20260809_111537_drop_ministries from './20260809_111537_drop_ministries';
 
 export const migrations = [
   {
@@ -46,6 +47,11 @@ export const migrations = [
   {
     up: migration_20260719_191110_donate_halyk_qr.up,
     down: migration_20260719_191110_donate_halyk_qr.down,
-    name: '20260719_191110_donate_halyk_qr'
+    name: '20260719_191110_donate_halyk_qr',
+  },
+  {
+    up: migration_20260809_111537_drop_ministries.up,
+    down: migration_20260809_111537_drop_ministries.down,
+    name: '20260809_111537_drop_ministries'
   },
 ];

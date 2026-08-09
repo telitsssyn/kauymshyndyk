@@ -1,11 +1,22 @@
-import { getTranslations } from 'next-intl/server'
+import { getTranslations, setRequestLocale } from 'next-intl/server'
 import React from 'react'
 
 import { Footer } from '@/components/Footer'
 import { Header } from '@/components/Header'
 import { getSettings } from '@/lib/queries'
 
-export default async function SiteLayout({ children }: { children: React.ReactNode }) {
+export default async function SiteLayout({
+  children,
+  params,
+}: {
+  children: React.ReactNode
+  params: Promise<{ locale: string }>
+}) {
+  // Без setRequestLocale next-intl определяет язык по заголовкам запроса,
+  // и тогда всё поддерево страниц рендерится на каждый заход заново.
+  const { locale } = await params
+  setRequestLocale(locale)
+
   const [settings, t] = await Promise.all([getSettings(), getTranslations('common')])
 
   return (

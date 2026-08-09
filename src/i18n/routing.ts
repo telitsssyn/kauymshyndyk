@@ -11,7 +11,6 @@ export const routing = defineRouting({
     '/first-time': { ru: '/vpervye' },
     '/schedule': { ru: '/raspisanie' },
     '/about': { ru: '/o-tserkvi' },
-    '/ministries': { ru: '/sluzheniya' },
     '/news': { ru: '/novosti' },
     '/news/[slug]': { ru: '/novosti/[slug]' },
     '/sermons': { ru: '/propovedi' },

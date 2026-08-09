@@ -6,11 +6,24 @@ import { Breadcrumbs } from '@/components/Breadcrumbs'
 import { PayloadImage } from '@/components/PayloadImage'
 import { RichText } from '@/components/RichText'
 import { Link } from '@/i18n/navigation'
-import { getNewsBySlug } from '@/lib/queries'
+import { getNewsBySlug, getNewsList } from '@/lib/queries'
 
-// Страница всегда рендерится на сервере: при пустой таблице на момент сборки
-// Next иначе считает маршрут статическим и падает с DYNAMIC_SERVER_USAGE.
-export const dynamic = 'force-dynamic'
+// Готовая страница отдаётся из кэша, а не пересобирается на каждый заход:
+// при сохранении новости в админке кэш сбрасывается сразу (lib/revalidate.ts),
+// час здесь — страховка на случай изменений в обход хуков.
+export const revalidate = 3600
+
+// Новости, существующие на момент сборки, рендерятся заранее; всё, что
+// появится позже, соберётся при первом обращении и тоже попадёт в кэш.
+export async function generateStaticParams() {
+  try {
+    const news = await getNewsList(100)
+    return news.docs.flatMap((item) => (item.slug ? [{ slug: item.slug }] : []))
+  } catch {
+    // На сборке без базы просто нечего готовить заранее
+    return []
+  }
+}
 
 export async function generateMetadata({
   params,

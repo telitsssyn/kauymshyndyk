@@ -7,6 +7,7 @@ export default defineConfig({
   test: {
     environment: 'jsdom',
     setupFiles: ['./vitest.setup.ts'],
-    include: ['tests/int/**/*.int.spec.ts'],
+    // unit — чистые функции, работают без базы; int — с поднятой базой
+    include: ['tests/unit/**/*.spec.ts', 'tests/int/**/*.int.spec.ts'],
   },
 })

@@ -12,7 +12,6 @@ const NAV_ITEMS = [
   { href: '/sermons', key: 'sermons' },
   { href: '/news', key: 'news' },
   { href: '/about', key: 'about' },
-  { href: '/ministries', key: 'ministries' },
   { href: '/donate', key: 'donate' },
   { href: '/contacts', key: 'contacts' },
 ] as const
@@ -34,7 +33,6 @@ export function Footer({ settings }: { settings: Setting | null }) {
           {settings?.tagline ? (
             <p className="mt-4 max-w-xs text-base text-paper/70">{settings.tagline}</p>
           ) : null}
-          <SocialLinks settings={settings} className="mt-5" />
         </div>
 
         <nav aria-label={t('footer.navigation')}>
@@ -79,6 +77,8 @@ export function Footer({ settings }: { settings: Setting | null }) {
               </li>
             ) : null}
           </ul>
+          {/* Соцсети — тоже способ связаться, поэтому стоят рядом с телефоном и почтой */}
+          <SocialLinks settings={settings} className="mt-5" />
         </div>
       </div>
 

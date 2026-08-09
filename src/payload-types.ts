@@ -100,7 +100,6 @@ export interface Config {
     schedule: Schedule;
     'first-visit': FirstVisit;
     'about-page': AboutPage;
-    'ministries-page': MinistriesPage;
     'donate-page': DonatePage;
     settings: Setting;
   };
@@ -109,7 +108,6 @@ export interface Config {
     schedule: ScheduleSelect<false> | ScheduleSelect<true>;
     'first-visit': FirstVisitSelect<false> | FirstVisitSelect<true>;
     'about-page': AboutPageSelect<false> | AboutPageSelect<true>;
-    'ministries-page': MinistriesPageSelect<false> | MinistriesPageSelect<true>;
     'donate-page': DonatePageSelect<false> | DonatePageSelect<true>;
     settings: SettingsSelect<false> | SettingsSelect<true>;
   };
@@ -777,61 +775,6 @@ export interface AboutPage {
   createdAt?: string | null;
 }
 /**
- * Страница о крещении, бракосочетании, погребении и молитвенной поддержке: что нужно и как договориться.
- *
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "ministries-page".
- */
-export interface MinistriesPage {
-  id: number;
-  intro?: {
-    root: {
-      type: string;
-      children: {
-        type: any;
-        version: number;
-        [k: string]: unknown;
-      }[];
-      direction: ('ltr' | 'rtl') | null;
-      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
-      indent: number;
-      version: number;
-    };
-    [k: string]: unknown;
-  } | null;
-  items?:
-    | {
-        /**
-         * Например: «Водное крещение», «Бракосочетание», «Молитва о нуждах».
-         */
-        title: string;
-        description: {
-          root: {
-            type: string;
-            children: {
-              type: any;
-              version: number;
-              [k: string]: unknown;
-            }[];
-            direction: ('ltr' | 'rtl') | null;
-            format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
-            indent: number;
-            version: number;
-          };
-          [k: string]: unknown;
-        };
-        howToArrange?: string | null;
-        id?: string | null;
-      }[]
-    | null;
-  /**
-   * Например: «Позвоните или напишите нам — поможем и подскажем».
-   */
-  contactNote?: string | null;
-  updatedAt?: string | null;
-  createdAt?: string | null;
-}
-/**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "donate-page".
  */
@@ -985,25 +928,6 @@ export interface FirstVisitSelect<T extends boolean = true> {
 export interface AboutPageSelect<T extends boolean = true> {
   history?: T;
   coverImage?: T;
-  updatedAt?: T;
-  createdAt?: T;
-  globalType?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "ministries-page_select".
- */
-export interface MinistriesPageSelect<T extends boolean = true> {
-  intro?: T;
-  items?:
-    | T
-    | {
-        title?: T;
-        description?: T;
-        howToArrange?: T;
-        id?: T;
-      };
-  contactNote?: T;
   updatedAt?: T;
   createdAt?: T;
   globalType?: T;

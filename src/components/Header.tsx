@@ -13,7 +13,6 @@ const NAV_ITEMS = [
   { href: '/sermons', key: 'sermons' },
   { href: '/news', key: 'news' },
   { href: '/about', key: 'about' },
-  { href: '/ministries', key: 'ministries' },
   { href: '/contacts', key: 'contacts' },
 ] as const
 

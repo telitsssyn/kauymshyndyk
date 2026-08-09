@@ -1,8 +1,9 @@
 import type { Schedule } from '@/payload-types'
 
-// Павлодар живёт по времени Астаны: UTC+5, перехода на летнее время нет.
+// Павлодар живёт по времени Астаны. Смещение зоны нигде не записано числом:
+// его отдаёт Intl — иначе при очередном переводе часов в стране (последний был
+// в 2024-м) константа и название зоны разойдутся молча.
 const TZ = 'Asia/Almaty'
-const TZ_OFFSET_HOURS = 5
 
 const DAY_INDEX: Record<string, number> = {
   sunday: 0,
@@ -56,9 +57,25 @@ const localNowParts = () => {
   }
 }
 
+// Смещение зоны в минутах на конкретный момент, по данным Intl
+const tzOffsetMinutes = (at: Date): number => {
+  const name =
+    new Intl.DateTimeFormat('en-US', { timeZone: TZ, timeZoneName: 'longOffset' })
+      .formatToParts(at)
+      .find((p) => p.type === 'timeZoneName')?.value ?? ''
+  const match = name.match(/GMT([+-])(\d{2}):(\d{2})/)
+  if (!match) return 0
+  const sign = match[1] === '-' ? -1 : 1
+  return sign * (Number(match[2]) * 60 + Number(match[3]))
+}
+
 // Метка времени (UTC) для даты и времени по часам Павлодара
-const almatyTimestamp = (y: number, m: number, d: number, hh: number, mm: number) =>
-  Date.UTC(y, m - 1, d, hh - TZ_OFFSET_HOURS, mm)
+const almatyTimestamp = (y: number, m: number, d: number, hh: number, mm: number) => {
+  // Смещение зависит от момента, а момент — от смещения; берём смещение
+  // по первому приближению. Для зоны без переходов это сразу точный ответ.
+  const guess = Date.UTC(y, m - 1, d, hh, mm)
+  return guess - tzOffsetMinutes(new Date(guess)) * 60_000
+}
 
 const formatDateLabel = (timestamp: number, locale: string) =>
   new Intl.DateTimeFormat(locale, {
@@ -82,8 +99,10 @@ export const getUpcomingServices = (
   count = 4,
 ): UpcomingService[] => {
   if (!schedule) return []
+  // Одно «сейчас» на обе функции файла: сравнение прошедших дат — обычная
+  // метка времени, часовой пояс нужен только для арифметики по дням недели.
+  const nowTs = Date.now()
   const now = localNowParts()
-  const nowTs = almatyTimestamp(now.y, now.m, now.d, now.hh, now.mm)
   const upcoming: UpcomingService[] = []
 
   for (const service of schedule.regularServices ?? []) {

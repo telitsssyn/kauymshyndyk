@@ -1,7 +1,7 @@
 {
   "name": "kauymshyndyk",
   "version": "1.0.0",
-  "description": "A blank template to get started with Payload 3.0",
+  "description": "Сайт Кауым-Церкви Шындык: расписание, новости, проповеди и админка на Payload CMS",
   "license": "MIT",
   "type": "module",
   "scripts": {
@@ -17,6 +17,7 @@
     "seed": "cross-env NODE_OPTIONS=--no-deprecation tsx src/seed/seed.ts",
     "start": "cross-env NODE_OPTIONS=--no-deprecation next start",
     "test": "npm run test:int && npm run test:e2e",
+    "test:unit": "cross-env NODE_OPTIONS=--no-deprecation vitest run --config ./vitest.config.mts tests/unit",
     "test:e2e": "cross-env NODE_OPTIONS=\"--no-deprecation --import=tsx/esm\" playwright test --config=playwright.config.ts",
     "test:int": "cross-env NODE_OPTIONS=--no-deprecation vitest run --config ./vitest.config.mts"
   },

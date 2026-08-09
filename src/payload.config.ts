@@ -17,7 +17,6 @@ import { AboutPage } from './globals/AboutPage'
 import { DonatePage } from './globals/DonatePage'
 import { FirstVisit } from './globals/FirstVisit'
 import { HomePage } from './globals/HomePage'
-import { MinistriesPage } from './globals/MinistriesPage'
 import { Schedule } from './globals/Schedule'
 import { Settings } from './globals/Settings'
 
@@ -35,7 +34,7 @@ export default buildConfig({
     },
   },
   collections: [News, Sermons, Ministers, GalleryItems, Media, Users],
-  globals: [HomePage, Schedule, FirstVisit, AboutPage, MinistriesPage, DonatePage, Settings],
+  globals: [HomePage, Schedule, FirstVisit, AboutPage, DonatePage, Settings],
   editor: lexicalEditor(),
   // Язык интерфейса админки
   i18n: {

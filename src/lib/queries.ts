@@ -27,11 +27,6 @@ export const getAboutPage = cache(async () => {
   return payload.findGlobal({ slug: 'about-page', depth: 1 })
 })
 
-export const getMinistriesPage = cache(async () => {
-  const payload = await getPayloadClient()
-  return payload.findGlobal({ slug: 'ministries-page' })
-})
-
 export const getDonatePage = cache(async () => {
   const payload = await getPayloadClient()
   return payload.findGlobal({ slug: 'donate-page', depth: 1 })

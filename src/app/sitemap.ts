@@ -10,7 +10,6 @@ const STATIC_PATHS = [
   '/schedule',
   '/sermons',
   '/about',
-  '/ministries',
   '/news',
   '/donate',
   '/contacts',
@@ -21,10 +20,11 @@ const STATIC_PATHS = [
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const base = (process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:3000').replace(/\/$/, '')
 
+  // У постоянных страниц lastModified не указываем: дата сборки — не дата
+  // изменения текста, а поисковику она сообщала бы, что меняется весь сайт сразу.
   const entries: MetadataRoute.Sitemap = routing.locales.flatMap((locale) =>
     STATIC_PATHS.map((pathname) => ({
       url: base + getPathname({ locale, href: pathname }),
-      lastModified: new Date(),
     })),
   )
 
