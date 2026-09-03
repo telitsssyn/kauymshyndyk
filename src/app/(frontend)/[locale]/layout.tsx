@@ -1,11 +1,12 @@
 import type { Metadata } from 'next'
 import { hasLocale, NextIntlClientProvider } from 'next-intl'
-import { getTranslations, setRequestLocale } from 'next-intl/server'
+import { getLocale, getTranslations, setRequestLocale } from 'next-intl/server'
 import { Inter, Oswald } from 'next/font/google'
 import { notFound } from 'next/navigation'
 import React from 'react'
 
 import { routing } from '@/i18n/routing'
+import { resolveOgImages } from '@/lib/metadata'
 import { getSettings } from '@/lib/queries'
 
 import '../styles.css'
@@ -28,9 +29,13 @@ export function generateStaticParams() {
 }
 
 export async function generateMetadata(): Promise<Metadata> {
-  const settings = await getSettings()
-  const t = await getTranslations('meta')
+  const [settings, locale, t] = await Promise.all([
+    getSettings(),
+    getLocale(),
+    getTranslations('meta'),
+  ])
   const churchName = settings?.churchName ?? ''
+  const description = settings?.tagline || t('defaultDescription')
 
   return {
     metadataBase: process.env.NEXT_PUBLIC_SERVER_URL
@@ -40,7 +45,17 @@ export async function generateMetadata(): Promise<Metadata> {
       default: t('homeTitle', { churchName }),
       template: `%s — ${churchName}`,
     },
-    description: settings?.tagline || t('defaultDescription'),
+    description,
+    // Запасной Open Graph: страницы задают свой через lib/metadata,
+    // но без него новая страница осталась бы вовсе без превью
+    openGraph: {
+      type: 'website',
+      siteName: churchName,
+      locale,
+      title: t('homeTitle', { churchName }),
+      description,
+      images: await resolveOgImages(),
+    },
   }
 }
 

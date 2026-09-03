@@ -5,13 +5,14 @@ import { BrushHeading } from '@/components/BrushHeading'
 import { Gallery } from '@/components/Gallery'
 import { PayloadImage } from '@/components/PayloadImage'
 import { RichText } from '@/components/RichText'
+import { buildMetadata } from '@/lib/metadata'
 import { getAboutPage, getGallery, getMinisters } from '@/lib/queries'
 
 export const revalidate = 3600
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations('about')
-  return { title: t('title') }
+  return buildMetadata({ href: '/about', title: t('title') })
 }
 
 export default async function AboutPage({

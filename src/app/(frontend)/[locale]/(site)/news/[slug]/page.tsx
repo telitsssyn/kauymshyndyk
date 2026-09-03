@@ -6,6 +6,7 @@ import { Breadcrumbs } from '@/components/Breadcrumbs'
 import { PayloadImage } from '@/components/PayloadImage'
 import { RichText } from '@/components/RichText'
 import { Link } from '@/i18n/navigation'
+import { buildMetadata } from '@/lib/metadata'
 import { getNewsBySlug, getNewsList } from '@/lib/queries'
 
 // Готовая страница отдаётся из кэша, а не пересобирается на каждый заход:
@@ -34,21 +35,13 @@ export async function generateMetadata({
   const news = await getNewsBySlug(slug)
   if (!news) return {}
 
-  const cover = typeof news.cover === 'object' ? news.cover : null
-  return {
+  return buildMetadata({
+    href: { pathname: '/news/[slug]', params: { slug } },
     title: news.title,
     description: news.excerpt || undefined,
-    openGraph: {
-      title: news.title,
-      description: news.excerpt || undefined,
-      type: 'article',
-      images: cover?.sizes?.hero?.url
-        ? [{ url: cover.sizes.hero.url }]
-        : cover?.url
-          ? [{ url: cover.url }]
-          : undefined,
-    },
-  }
+    image: news.cover,
+    type: 'article',
+  })
 }
 
 export default async function NewsDetailPage({

@@ -8,6 +8,7 @@ import { RichText } from '@/components/RichText'
 import { SermonNotes } from '@/components/SermonNotes'
 import { YouTubeEmbed } from '@/components/YouTubeEmbed'
 import { Link } from '@/i18n/navigation'
+import { buildMetadata } from '@/lib/metadata'
 import { getSermonBySlug, getSermonsList, getSettings } from '@/lib/queries'
 import { richTextToPlain } from '@/lib/richtext'
 import { extractVideoId, youtubeThumbnail } from '@/lib/youtube'
@@ -38,23 +39,17 @@ export async function generateMetadata({
   const sermon = await getSermonBySlug(slug)
   if (!sermon) return {}
 
+  // У проповеди с видео превью берём с YouTube: обложка заполнена не всегда,
+  // а кадр из ролика узнаётся лучше общего фото зала
   const videoId = sermon.youtubeUrl ? extractVideoId(sermon.youtubeUrl) : null
-  const cover = typeof sermon.cover === 'object' ? sermon.cover : null
-  const ogImage = videoId
-    ? youtubeThumbnail(videoId)
-    : (cover?.sizes?.hero?.url ?? cover?.url ?? undefined)
-  const description = richTextToPlain(sermon.description)
 
-  return {
+  return buildMetadata({
+    href: { pathname: '/sermons/[slug]', params: { slug } },
     title: sermon.title,
-    description,
-    openGraph: {
-      title: sermon.title,
-      description,
-      type: videoId ? 'video.other' : 'article',
-      images: ogImage ? [{ url: ogImage }] : undefined,
-    },
-  }
+    description: richTextToPlain(sermon.description),
+    image: videoId ? youtubeThumbnail(videoId) : sermon.cover,
+    type: videoId ? 'video.other' : 'article',
+  })
 }
 
 export default async function SermonPage({

@@ -4,13 +4,14 @@ import { getTranslations, setRequestLocale } from 'next-intl/server'
 import { BrushHeading } from '@/components/BrushHeading'
 import { SermonCard } from '@/components/SermonCard'
 import { Link } from '@/i18n/navigation'
+import { buildMetadata } from '@/lib/metadata'
 import { getSermonsList, getSettings } from '@/lib/queries'
 
 const PER_PAGE = 12
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations('sermons')
-  return { title: t('title') }
+  return buildMetadata({ href: '/sermons', title: t('title') })
 }
 
 export default async function SermonsPage({

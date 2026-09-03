@@ -4,13 +4,14 @@ import { getTranslations, setRequestLocale } from 'next-intl/server'
 import { BrushHeading } from '@/components/BrushHeading'
 import { PayloadImage } from '@/components/PayloadImage'
 import { RichText } from '@/components/RichText'
+import { buildMetadata } from '@/lib/metadata'
 import { getDonatePage } from '@/lib/queries'
 
 export const revalidate = 3600
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations('donate')
-  return { title: t('title') }
+  return buildMetadata({ href: '/donate', title: t('title') })
 }
 
 export default async function DonatePage({

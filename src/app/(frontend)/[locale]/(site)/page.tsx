@@ -1,3 +1,4 @@
+import type { Metadata } from 'next'
 import { getTranslations, setRequestLocale } from 'next-intl/server'
 
 import { AnnouncementBanner } from '@/components/AnnouncementBanner'
@@ -8,10 +9,15 @@ import { PayloadImage } from '@/components/PayloadImage'
 import { RichText } from '@/components/RichText'
 import { UpcomingServices } from '@/components/UpcomingServices'
 import { Link } from '@/i18n/navigation'
+import { buildMetadata } from '@/lib/metadata'
 import { getUpcomingServices } from '@/lib/schedule'
 import { getHomePage, getNewsList, getSchedule, getSettings } from '@/lib/queries'
 
 export const revalidate = 3600
+
+export async function generateMetadata(): Promise<Metadata> {
+  return buildMetadata({ href: '/' })
+}
 
 export default async function HomePage({
   params,

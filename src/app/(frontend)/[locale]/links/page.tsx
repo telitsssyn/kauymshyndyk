@@ -4,6 +4,7 @@ import type { ReactNode } from 'react'
 
 import { Logo } from '@/components/Logo'
 import { Link } from '@/i18n/navigation'
+import { buildMetadata } from '@/lib/metadata'
 import { getSchedule, getSettings } from '@/lib/queries'
 
 export const revalidate = 3600
@@ -20,7 +21,7 @@ const DAY_ORDER = [
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations('links')
-  return { title: t('title'), description: t('description') }
+  return buildMetadata({ href: '/links', title: t('title'), description: t('description') })
 }
 
 function Tile({

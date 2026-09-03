@@ -3,6 +3,7 @@ import { getTranslations, setRequestLocale } from 'next-intl/server'
 
 import { BrushHeading } from '@/components/BrushHeading'
 import { Link } from '@/i18n/navigation'
+import { buildMetadata } from '@/lib/metadata'
 import { getSettings } from '@/lib/queries'
 
 export const revalidate = 3600
@@ -11,7 +12,7 @@ const LAST_UPDATED = '18 июля 2026 года'
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations('legal')
-  return { title: t('termsTitle') }
+  return buildMetadata({ href: '/terms', title: t('termsTitle') })
 }
 
 export default async function TermsPage({

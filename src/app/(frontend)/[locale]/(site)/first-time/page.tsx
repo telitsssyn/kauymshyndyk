@@ -4,13 +4,14 @@ import { getTranslations, setRequestLocale } from 'next-intl/server'
 import { BrushHeading } from '@/components/BrushHeading'
 import { RichText } from '@/components/RichText'
 import { Link } from '@/i18n/navigation'
+import { buildMetadata } from '@/lib/metadata'
 import { getFirstVisit } from '@/lib/queries'
 
 export const revalidate = 3600
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations('firstTime')
-  return { title: t('title'), description: t('subtitle') }
+  return buildMetadata({ href: '/first-time', title: t('title'), description: t('subtitle') })
 }
 
 export default async function FirstTimePage({

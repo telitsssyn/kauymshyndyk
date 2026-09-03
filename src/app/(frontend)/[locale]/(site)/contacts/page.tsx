@@ -4,13 +4,14 @@ import { getTranslations, setRequestLocale } from 'next-intl/server'
 import { BrushHeading } from '@/components/BrushHeading'
 import { MapEmbed } from '@/components/MapEmbed'
 import { SocialLinks } from '@/components/SocialLinks'
+import { buildMetadata } from '@/lib/metadata'
 import { getSettings } from '@/lib/queries'
 
 export const revalidate = 3600
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations('contacts')
-  return { title: t('title') }
+  return buildMetadata({ href: '/contacts', title: t('title') })
 }
 
 export default async function ContactsPage({

@@ -4,13 +4,14 @@ import { getTranslations, setRequestLocale } from 'next-intl/server'
 import { BrushHeading } from '@/components/BrushHeading'
 import { NewsCard } from '@/components/NewsCard'
 import { Link } from '@/i18n/navigation'
+import { buildMetadata } from '@/lib/metadata'
 import { getNewsList } from '@/lib/queries'
 
 const PER_PAGE = 12
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations('news')
-  return { title: t('title') }
+  return buildMetadata({ href: '/news', title: t('title') })
 }
 
 export default async function NewsPage({

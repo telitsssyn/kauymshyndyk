@@ -4,6 +4,7 @@ import { getTranslations, setRequestLocale } from 'next-intl/server'
 import { AnnouncementBanner } from '@/components/AnnouncementBanner'
 import { BrushHeading } from '@/components/BrushHeading'
 import { Link } from '@/i18n/navigation'
+import { buildMetadata } from '@/lib/metadata'
 import { getActiveSpecialServices } from '@/lib/schedule'
 import { getSchedule, getSettings } from '@/lib/queries'
 
@@ -21,7 +22,7 @@ const DAY_ORDER = [
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations('schedule')
-  return { title: t('title') }
+  return buildMetadata({ href: '/schedule', title: t('title') })
 }
 
 export default async function SchedulePage({
