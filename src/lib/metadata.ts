@@ -4,7 +4,7 @@ import { getLocale, getTranslations } from 'next-intl/server'
 import { getPathname } from '@/i18n/navigation'
 import type { Media } from '@/payload-types'
 
-import { getHomePage, getSettings } from './queries'
+import { getSettings } from './queries'
 
 type Href = Parameters<typeof getPathname>[0]['href']
 
@@ -21,22 +21,20 @@ type Options = {
   type?: 'website' | 'article' | 'video.other'
 }
 
-// Логотип — последняя подстраховка: он есть всегда, даже на пустой базе
-const FALLBACK_IMAGE: OgImage = { url: '/logo.png' }
+// Карточка с логотипом: public/og.jpg, пересобирается через npm run make:og.
+// Общее превью для всех страниц без собственной картинки — фотографии зала
+// в мелком превью мессенджера читаются плохо, логотип узнаётся сразу.
+const DEFAULT_IMAGE = { url: '/og.jpg', width: 1200, height: 630 }
 
 /**
- * Картинка для превью ссылки. Своя у страницы, иначе фото из шапки главной:
- * пустое превью в мессенджере выглядит как битая ссылка.
+ * Картинка для превью ссылки: своя у страницы, иначе карточка с логотипом.
+ * Пустое превью в мессенджере выглядит как битая ссылка.
  */
-export async function resolveOgImages(image?: Options['image']): Promise<OgImage[]> {
+export async function resolveOgImages(image?: Options['image'], alt?: string): Promise<OgImage[]> {
   if (typeof image === 'string') return [{ url: image }]
 
-  let media = typeof image === 'object' ? image : null
-  if (!media) {
-    const home = await getHomePage()
-    media = typeof home?.heroImage === 'object' ? home.heroImage : null
-  }
-  if (!media?.url) return [FALLBACK_IMAGE]
+  const media = typeof image === 'object' ? image : null
+  if (!media?.url) return [{ ...DEFAULT_IMAGE, alt }]
 
   const hero = media.sizes?.hero
   return [
@@ -84,7 +82,7 @@ export async function buildMetadata({
       locale,
       title: title ? `${title} — ${churchName}` : t('homeTitle', { churchName }),
       description: text,
-      images: await resolveOgImages(image),
+      images: await resolveOgImages(image, churchName),
     },
   }
 }

@@ -54,7 +54,7 @@ export async function generateMetadata(): Promise<Metadata> {
       locale,
       title: t('homeTitle', { churchName }),
       description,
-      images: await resolveOgImages(),
+      images: await resolveOgImages(undefined, churchName),
     },
   }
 }
