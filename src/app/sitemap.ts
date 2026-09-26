@@ -10,6 +10,8 @@ const STATIC_PATHS = [
   '/schedule',
   '/sermons',
   '/about',
+  '/bible',
+  '/courses',
   '/news',
   '/donate',
   '/contacts',

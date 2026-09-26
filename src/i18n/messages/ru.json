@@ -45,7 +45,11 @@
     "latestSermons": "Последние проповеди",
     "latestNews": "Новости и события",
     "howToFindUs": "Как нас найти",
-    "welcome": "Добро пожаловать"
+    "welcome": "Добро пожаловать",
+    "reelsTag": "Instagram Reels",
+    "reelsTitle": "Жизнь церкви в видео",
+    "reelsSubtitle": "Короткие видео, моменты богослужений и вдохновляющие мысли из нашего Instagram",
+    "reelsCta": "Перейти в Instagram"
   },
   "schedule": {
     "title": "Расписание богослужений",
