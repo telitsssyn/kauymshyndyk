@@ -57,10 +57,10 @@ export const News: CollectionConfig = {
     {
       name: 'eventDate',
       type: 'date',
-      label: 'Дата и время события',
+      label: 'Дата события',
       admin: {
         position: 'sidebar',
-        date: { pickerAppearance: 'dayAndTime', displayFormat: 'dd.MM.yyyy HH:mm' },
+        date: { pickerAppearance: 'dayOnly', displayFormat: 'dd.MM.yyyy' },
         description: 'Заполните только для анонсов: встреч, праздничных служений и т.п.',
       },
     },

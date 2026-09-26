@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { getTranslations, setRequestLocale } from 'next-intl/server'
 import type { ReactNode } from 'react'
 
+import { Arrow } from '@/components/Arrow'
 import { Logo } from '@/components/Logo'
 import { Link } from '@/i18n/navigation'
 import { buildMetadata } from '@/lib/metadata'
@@ -53,7 +54,7 @@ function Tile({
         {children}
       </span>
       <span aria-hidden="true" className={primary ? 'text-white/70' : 'text-ink-soft'}>
-        →
+        <Arrow className="h-5 w-5" />
       </span>
     </span>
   )

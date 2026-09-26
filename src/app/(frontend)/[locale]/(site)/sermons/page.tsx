@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { getTranslations, setRequestLocale } from 'next-intl/server'
 
+import { Arrow } from '@/components/Arrow'
 import { BrushHeading } from '@/components/BrushHeading'
 import { SermonCard } from '@/components/SermonCard'
 import { Link } from '@/i18n/navigation'
@@ -44,9 +45,10 @@ export default async function SermonsPage({
             href={settings.youtube}
             target="_blank"
             rel="noopener noreferrer"
-            className="font-heading font-semibold uppercase tracking-wider text-blue-dark hover:text-ink"
+            className="group inline-flex items-center gap-1.5 font-heading font-semibold uppercase tracking-wider text-blue-dark hover:text-ink"
           >
-            {t('watchOnYoutube')} →
+            <span>{t('watchOnYoutube')}</span>
+            <Arrow />
           </a>
         ) : null}
       </div>
@@ -79,16 +81,24 @@ export default async function SermonsPage({
           className="mt-12 flex flex-wrap items-center gap-4"
         >
           {sermons.hasPrevPage ? (
-            <Link href={{ pathname: '/sermons', query: { page: page - 1 } }} className="btn-outline">
-              ← {t('newerPage')}
+            <Link
+              href={{ pathname: '/sermons', query: { page: page - 1 } }}
+              className="group btn-outline inline-flex items-center gap-2"
+            >
+              <Arrow direction="left" />
+              <span>{t('newerPage')}</span>
             </Link>
           ) : null}
           <span className="text-base text-ink-soft">
             {t('pageOf', { page: sermons.page ?? page, total: sermons.totalPages })}
           </span>
           {sermons.hasNextPage ? (
-            <Link href={{ pathname: '/sermons', query: { page: page + 1 } }} className="btn-outline">
-              {t('olderPage')} →
+            <Link
+              href={{ pathname: '/sermons', query: { page: page + 1 } }}
+              className="group btn-outline inline-flex items-center gap-2"
+            >
+              <span>{t('olderPage')}</span>
+              <Arrow />
             </Link>
           ) : null}
         </nav>

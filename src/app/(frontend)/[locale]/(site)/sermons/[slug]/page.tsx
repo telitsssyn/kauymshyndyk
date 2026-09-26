@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { getFormatter, getTranslations, setRequestLocale } from 'next-intl/server'
 import { notFound } from 'next/navigation'
 
+import { Arrow } from '@/components/Arrow'
 import { Breadcrumbs } from '@/components/Breadcrumbs'
 import { PayloadImage } from '@/components/PayloadImage'
 import { RichText } from '@/components/RichText'
@@ -156,8 +157,9 @@ export default async function SermonPage({
       <SermonNotes slug={slug} />
 
       <div className="mt-8 flex flex-wrap gap-3">
-        <Link href="/sermons" className="btn-outline">
-          ← {t('backToList')}
+        <Link href="/sermons" className="group btn-outline inline-flex items-center gap-2">
+          <Arrow direction="left" />
+          <span>{t('backToList')}</span>
         </Link>
         {sermon.youtubeUrl ? (
           <a

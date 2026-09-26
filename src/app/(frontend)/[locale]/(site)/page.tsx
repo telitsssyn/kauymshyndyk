@@ -2,16 +2,24 @@ import type { Metadata } from 'next'
 import { getTranslations, setRequestLocale } from 'next-intl/server'
 
 import { AnnouncementBanner } from '@/components/AnnouncementBanner'
+import { Arrow } from '@/components/Arrow'
 import { BrushHeading } from '@/components/BrushHeading'
 import { MapEmbed } from '@/components/MapEmbed'
 import { NewsCard } from '@/components/NewsCard'
 import { PayloadImage } from '@/components/PayloadImage'
 import { RichText } from '@/components/RichText'
+import { SermonCard } from '@/components/SermonCard'
 import { UpcomingServices } from '@/components/UpcomingServices'
 import { Link } from '@/i18n/navigation'
 import { buildMetadata } from '@/lib/metadata'
 import { getUpcomingServices } from '@/lib/schedule'
-import { getHomePage, getNewsList, getSchedule, getSettings } from '@/lib/queries'
+import {
+  getHomePage,
+  getNewsList,
+  getSchedule,
+  getSermonsList,
+  getSettings,
+} from '@/lib/queries'
 
 export const revalidate = 3600
 
@@ -27,11 +35,12 @@ export default async function HomePage({
   const { locale } = await params
   setRequestLocale(locale)
 
-  const [settings, home, schedule, news, t] = await Promise.all([
+  const [settings, home, schedule, news, sermons, t] = await Promise.all([
     getSettings(),
     getHomePage(),
     getSchedule(),
     getNewsList(3),
+    getSermonsList(3),
     getTranslations(),
   ])
 
@@ -70,8 +79,54 @@ export default async function HomePage({
         </div>
       </section>
 
+      {/* Проповеди */}
+      {sermons.docs.length > 0 ? (
+        <section className="container-site py-12 sm:py-16">
+          <div className="flex flex-wrap items-end justify-between gap-4">
+            <BrushHeading as="h2" className="text-3xl sm:text-4xl">
+              {t('home.latestSermons')}
+            </BrushHeading>
+            <Link
+              href="/sermons"
+              className="group inline-flex items-center gap-1.5 font-heading font-semibold uppercase tracking-wider text-blue-dark hover:text-ink"
+            >
+              <span>{t('common.allSermons')}</span>
+              <Arrow />
+            </Link>
+          </div>
+          <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {sermons.docs.map((sermon) => (
+              <SermonCard key={sermon.id} sermon={sermon} />
+            ))}
+          </div>
+        </section>
+      ) : null}
+
+      {/* Новости */}
+      {news.docs.length > 0 ? (
+        <section className={`container-site ${sermons.docs.length > 0 ? 'pb-12 sm:pb-16' : 'py-12 sm:py-16'}`}>
+          <div className="flex flex-wrap items-end justify-between gap-4">
+            <BrushHeading as="h2" className="text-3xl sm:text-4xl">
+              {t('home.latestNews')}
+            </BrushHeading>
+            <Link
+              href="/news"
+              className="group inline-flex items-center gap-1.5 font-heading font-semibold uppercase tracking-wider text-blue-dark hover:text-ink"
+            >
+              <span>{t('common.allNews')}</span>
+              <Arrow />
+            </Link>
+          </div>
+          <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {news.docs.map((item) => (
+              <NewsCard key={item.id} news={item} />
+            ))}
+          </div>
+        </section>
+      ) : null}
+
       {/* Ближайшие богослужения */}
-      <section className="container-site py-12 sm:py-16">
+      <section className="container-site pb-12 sm:pb-16">
         <BrushHeading as="h2" className="text-3xl sm:text-4xl">
           {t('home.upcomingServices')}
         </BrushHeading>
@@ -142,28 +197,6 @@ export default async function HomePage({
           </div>
         </div>
       </section>
-
-      {/* Новости */}
-      {news.docs.length > 0 ? (
-        <section className="container-site pb-12 sm:pb-16">
-          <div className="flex flex-wrap items-end justify-between gap-4">
-            <BrushHeading as="h2" className="text-3xl sm:text-4xl">
-              {t('home.latestNews')}
-            </BrushHeading>
-            <Link
-              href="/news"
-              className="font-heading font-semibold uppercase tracking-wider text-blue-dark hover:text-ink"
-            >
-              {t('common.allNews')} →
-            </Link>
-          </div>
-          <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {news.docs.map((item) => (
-              <NewsCard key={item.id} news={item} />
-            ))}
-          </div>
-        </section>
-      ) : null}
 
       {/* Как нас найти */}
       {settings?.mapEmbedUrl ? (

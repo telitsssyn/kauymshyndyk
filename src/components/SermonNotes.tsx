@@ -16,6 +16,7 @@ export function SermonNotes({ slug }: { slug: string }) {
   const [copied, setCopied] = useState(false)
   const saveTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
   const savedTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
+  const dialogRef = useRef<HTMLDialogElement>(null)
 
   useEffect(() => {
     // Разовая гидрация из localStorage: на сервере хранилища нет, поэтому
@@ -27,7 +28,15 @@ export function SermonNotes({ slug }: { slug: string }) {
       // localStorage недоступен (например, режим инкогнито с запретом) — поле просто пустое
     }
     setLoaded(true)
+    dialogRef.current?.close()
   }, [slug])
+
+  useEffect(() => {
+    return () => {
+      clearTimeout(saveTimer.current)
+      clearTimeout(savedTimer.current)
+    }
+  }, [])
 
   const onChange = (value: string) => {
     setText(value)
@@ -68,6 +77,32 @@ export function SermonNotes({ slug }: { slug: string }) {
     URL.revokeObjectURL(url)
   }
 
+  const openModal = () => {
+    dialogRef.current?.showModal()
+  }
+
+  const closeModal = () => {
+    dialogRef.current?.close()
+  }
+
+  const onDialogClick = (e: React.MouseEvent<HTMLDialogElement>) => {
+    if (e.target === dialogRef.current) {
+      closeModal()
+    }
+  }
+
+  const confirmClear = () => {
+    closeModal()
+    clearTimeout(saveTimer.current)
+    setText('')
+    setSaved(false)
+    try {
+      localStorage.removeItem(storageKey(slug))
+    } catch {
+      // localStorage недоступен
+    }
+  }
+
   return (
     <section className="mt-10" aria-label={t('title')}>
       <h2 className="text-2xl">{t('title')}</h2>
@@ -87,16 +122,68 @@ export function SermonNotes({ slug }: { slug: string }) {
           {saved ? t('saved') : ''}
         </span>
         {text.trim() ? (
-          <span className="ml-auto flex flex-wrap gap-2">
+          <span className="ml-auto flex flex-wrap items-center gap-2">
             <button type="button" onClick={copy} className="btn-outline px-4 text-sm" aria-live="polite">
               {copied ? t('copied') : t('copy')}
             </button>
             <button type="button" onClick={download} className="btn-outline px-4 text-sm">
               {t('download')}
             </button>
+            <button
+              type="button"
+              onClick={openModal}
+              className="btn border-2 border-ink/20 px-4 text-sm text-ink-soft hover:border-red-600 hover:bg-red-50 hover:text-red-700"
+            >
+              {t('clear')}
+            </button>
           </span>
         ) : null}
       </div>
+
+      <dialog
+        ref={dialogRef}
+        onClick={onDialogClick}
+        aria-labelledby="clear-dialog-title"
+        aria-describedby="clear-dialog-desc"
+        className="fixed inset-0 m-auto w-[calc(100%-2rem)] max-w-md rounded-2xl bg-white p-6 shadow-xl ring-1 ring-ink/10 backdrop:bg-ink/60 backdrop:backdrop-blur-xs"
+      >
+        <div className="flex flex-col gap-4">
+          <div className="flex items-start justify-between gap-3">
+            <h3 id="clear-dialog-title" className="font-heading text-xl font-semibold uppercase tracking-wide text-ink">
+              {t('confirmDialogTitle')}
+            </h3>
+            <button
+              type="button"
+              onClick={closeModal}
+              aria-label={t('close')}
+              className="-mr-1 -mt-1 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-ink-soft transition-colors hover:bg-ice hover:text-ink"
+            >
+              <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" aria-hidden="true">
+                <path d="M6 6l12 12M18 6L6 18" />
+              </svg>
+            </button>
+          </div>
+          <p id="clear-dialog-desc" className="-mt-1 text-base leading-relaxed text-ink-soft">
+            {t('confirmDialogDesc')}
+          </p>
+          <div className="mt-2 flex flex-wrap justify-end gap-2">
+            <button
+              type="button"
+              onClick={closeModal}
+              className="btn-outline px-4 text-sm"
+            >
+              {t('cancel')}
+            </button>
+            <button
+              type="button"
+              onClick={confirmClear}
+              className="btn border-2 border-red-600 bg-red-600 px-4 text-sm text-white hover:bg-red-700"
+            >
+              {t('confirmDialogAction')}
+            </button>
+          </div>
+        </div>
+      </dialog>
     </section>
   )
 }

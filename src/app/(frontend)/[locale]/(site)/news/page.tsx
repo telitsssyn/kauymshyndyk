@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { getTranslations, setRequestLocale } from 'next-intl/server'
 
+import { Arrow } from '@/components/Arrow'
 import { BrushHeading } from '@/components/BrushHeading'
 import { NewsCard } from '@/components/NewsCard'
 import { Link } from '@/i18n/navigation'
@@ -51,16 +52,24 @@ export default async function NewsPage({
           className="mt-12 flex flex-wrap items-center gap-4"
         >
           {news.hasPrevPage ? (
-            <Link href={{ pathname: '/news', query: { page: page - 1 } }} className="btn-outline">
-              ← {t('newerPage')}
+            <Link
+              href={{ pathname: '/news', query: { page: page - 1 } }}
+              className="group btn-outline inline-flex items-center gap-2"
+            >
+              <Arrow direction="left" />
+              <span>{t('newerPage')}</span>
             </Link>
           ) : null}
           <span className="text-base text-ink-soft">
             {t('pageOf', { page: news.page ?? page, total: news.totalPages })}
           </span>
           {news.hasNextPage ? (
-            <Link href={{ pathname: '/news', query: { page: page + 1 } }} className="btn-outline">
-              {t('olderPage')} →
+            <Link
+              href={{ pathname: '/news', query: { page: page + 1 } }}
+              className="group btn-outline inline-flex items-center gap-2"
+            >
+              <span>{t('olderPage')}</span>
+              <Arrow />
             </Link>
           ) : null}
         </nav>

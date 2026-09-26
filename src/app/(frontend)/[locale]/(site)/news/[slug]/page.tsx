@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { getFormatter, getTranslations, setRequestLocale } from 'next-intl/server'
 import { notFound } from 'next/navigation'
 
+import { Arrow } from '@/components/Arrow'
 import { Breadcrumbs } from '@/components/Breadcrumbs'
 import { PayloadImage } from '@/components/PayloadImage'
 import { RichText } from '@/components/RichText'
@@ -89,25 +90,37 @@ export default async function NewsDetailPage({
       />
 
       <div className="flex flex-wrap items-center gap-2">
-        <time className="chip" dateTime={news.publishedDate}>
-          {format.dateTime(new Date(news.publishedDate), {
-            day: 'numeric',
-            month: 'long',
-            year: 'numeric',
-          })}
-        </time>
         {news.eventDate ? (
-          <span className="chip bg-blue-dark text-white">
-            {t('eventDate', {
-              date: format.dateTime(new Date(news.eventDate), {
-                day: 'numeric',
-                month: 'long',
-                hour: '2-digit',
-                minute: '2-digit',
-              }),
+          <>
+            <span className="chip bg-blue-dark text-white">{t('event')}</span>
+            <time className="chip font-medium" dateTime={news.eventDate}>
+              {t('eventDate', {
+                date: format.dateTime(new Date(news.eventDate), {
+                  day: 'numeric',
+                  month: 'long',
+                  year: 'numeric',
+                }),
+              })}
+            </time>
+            <time className="chip text-ink-soft" dateTime={news.publishedDate}>
+              {t('published', {
+                date: format.dateTime(new Date(news.publishedDate), {
+                  day: 'numeric',
+                  month: 'long',
+                  year: 'numeric',
+                }),
+              })}
+            </time>
+          </>
+        ) : (
+          <time className="chip" dateTime={news.publishedDate}>
+            {format.dateTime(new Date(news.publishedDate), {
+              day: 'numeric',
+              month: 'long',
+              year: 'numeric',
             })}
-          </span>
-        ) : null}
+          </time>
+        )}
       </div>
 
       <h1 className="mt-5 text-3xl normal-case tracking-normal sm:text-4xl">{news.title}</h1>
@@ -128,8 +141,9 @@ export default async function NewsDetailPage({
       </div>
 
       <div className="mt-12">
-        <Link href="/news" className="btn-outline">
-          ← {t('backToList')}
+        <Link href="/news" className="group btn-outline inline-flex items-center gap-2">
+          <Arrow direction="left" />
+          <span>{t('backToList')}</span>
         </Link>
       </div>
     </article>

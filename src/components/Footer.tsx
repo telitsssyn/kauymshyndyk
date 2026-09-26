@@ -10,6 +10,8 @@ const NAV_ITEMS = [
   { href: '/first-time', key: 'firstTime' },
   { href: '/schedule', key: 'schedule' },
   { href: '/sermons', key: 'sermons' },
+  { href: '/bible', key: 'bible' },
+  { href: '/courses', key: 'courses' },
   { href: '/news', key: 'news' },
   { href: '/about', key: 'about' },
   { href: '/donate', key: 'donate' },

@@ -1,0 +1,81 @@
+export type TranslationKey = 'rst' | 'cars'
+
+export interface TranslationMeta {
+  key: TranslationKey
+  name: string
+  shortName: string
+  badge: string
+  description: string
+}
+
+export type CommentaryAuthorKey = 'macdonald' | 'geneva'
+
+export interface CommentaryAuthorMeta {
+  key: CommentaryAuthorKey
+  name: string
+  shortName: string
+  tagline: string
+}
+
+export interface VerseCommentary {
+  authorKey: CommentaryAuthorKey
+  authorName: string
+  title?: string
+  text: string
+  crossReferences?: string[]
+}
+
+export interface BibleVerse {
+  number: number
+  text: Record<TranslationKey, string>
+  commentaries: VerseCommentary[]
+}
+
+export interface BibleChapter {
+  bookSlug: string
+  bookName: string
+  chapter: number
+  totalChapters: number
+  verses: BibleVerse[]
+}
+
+export interface BibleBookMeta {
+  slug: string
+  name: string
+  shortName: string
+  testament: 'old' | 'new'
+  chaptersCount: number
+  availableChapters: number[]
+}
+
+export const BIBLE_TRANSLATIONS: TranslationMeta[] = [
+  {
+    key: 'rst',
+    name: 'Синодальный перевод',
+    shortName: 'Синодальный',
+    badge: 'РСТ',
+    description: 'Традиционный классический перевод Библии на русский язык',
+  },
+  {
+    key: 'cars',
+    name: 'Восточный перевод',
+    shortName: 'Восточный',
+    badge: 'CARS',
+    description: 'Священное Писание в Восточном переводе Института перевода Библии',
+  },
+]
+
+export const COMMENTARY_AUTHORS: CommentaryAuthorMeta[] = [
+  {
+    key: 'macdonald',
+    name: 'Уильям МакДональд',
+    shortName: 'МакДональд',
+    tagline: 'Практический евангельский комментарий',
+  },
+  {
+    key: 'geneva',
+    name: 'Женевская учебная Библия',
+    shortName: 'Женевская',
+    tagline: 'Богословский и контекстуальный разбор',
+  },
+]
