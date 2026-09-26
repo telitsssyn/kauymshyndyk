@@ -70,7 +70,11 @@ export function BibleReader({ initialChapter }: BibleReaderProps) {
     setBookSlug(newBookSlug)
     setChapterNumber(newChapter)
     setSelectedVerseNumber(null)
-    window.scrollTo({ top: 0, behavior: 'smooth' })
+    
+    // Даем React время обновить DOM перед тем, как скроллить
+    setTimeout(() => {
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+    }, 100)
   }
 
   return (

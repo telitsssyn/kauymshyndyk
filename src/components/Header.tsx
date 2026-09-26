@@ -111,6 +111,18 @@ export function Header({ churchName }: { churchName: string }) {
     }
   }, [])
 
+  // Блокировка скролла основной страницы при открытом мобильном меню
+  useEffect(() => {
+    if (open) {
+      document.body.style.overflow = 'hidden'
+    } else {
+      document.body.style.overflow = ''
+    }
+    return () => {
+      document.body.style.overflow = ''
+    }
+  }, [open])
+
   const [prevPathname, setPrevPathname] = useState(pathname)
   if (prevPathname !== pathname) {
     setPrevPathname(pathname)
@@ -310,7 +322,7 @@ export function Header({ churchName }: { churchName: string }) {
           aria-label={t('menu')}
           className="border-t border-ink/10 bg-paper lg:hidden"
         >
-          <div className="container-site flex max-h-[calc(100vh-5rem)] flex-col gap-3 overflow-y-auto py-4">
+          <div className="container-site flex max-h-[calc(100dvh-4.5rem)] flex-col gap-3 overflow-y-auto overscroll-contain py-4">
             <Link
               href="/"
               onClick={closeMenu}
