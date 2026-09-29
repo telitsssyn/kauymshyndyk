@@ -4,7 +4,7 @@ import { getTranslations, setRequestLocale } from 'next-intl/server'
 import { BibleReader } from '@/components/bible/BibleReader'
 import { Breadcrumbs } from '@/components/Breadcrumbs'
 import { BrushHeading } from '@/components/BrushHeading'
-import { loadBibleChapterServer } from '@/data/bible'
+import { loadBibleChapterServer } from '@/data/bible/server'
 import { buildMetadata } from '@/lib/metadata'
 
 export const revalidate = 3600
