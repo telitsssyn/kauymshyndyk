@@ -1,14 +1,35 @@
+import fs from 'node:fs'
+import path from 'node:path'
 import { NextIntlClientProvider } from 'next-intl'
 import React, { act } from 'react'
 import { createRoot, Root } from 'react-dom/client'
-import { afterEach, beforeEach, describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { BibleReader } from '@/components/bible/BibleReader'
-import { GENESIS_1 } from '@/data/bible/genesis-1'
+import type { BibleChapter } from '@/data/bible'
 import messages from '@/i18n/messages/ru.json'
+
+// Загружаем тестовые данные из JSON
+const GENESIS_1: BibleChapter = JSON.parse(
+  fs.readFileSync(path.resolve(process.cwd(), 'public/bible/genesis/1.json'), 'utf-8'),
+)
 
 // @ts-expect-error React 19 testing flag
 globalThis.IS_REACT_ACT_ENVIRONMENT = true
+
+// Мокаем fetch, чтобы тесты не ходили в сеть
+vi.stubGlobal('fetch', async (url: string) => {
+  // Парсим URL вида /bible/genesis/2.json
+  const match = String(url).match(/\/bible\/([^/]+)\/(\d+)\.json/)
+  if (match) {
+    const filePath = path.resolve(process.cwd(), `public/bible/${match[1]}/${match[2]}.json`)
+    if (fs.existsSync(filePath)) {
+      const data = fs.readFileSync(filePath, 'utf-8')
+      return { ok: true, json: async () => JSON.parse(data) }
+    }
+  }
+  return { ok: false, json: async () => null }
+})
 
 describe('BibleReader', () => {
   let container: HTMLDivElement
@@ -85,6 +106,11 @@ describe('BibleReader', () => {
       nextChapterBtn?.click()
     })
 
+    // Ждём загрузку через fetch
+    await act(async () => {
+      await new Promise((r) => setTimeout(r, 100))
+    })
+
     expect(container.textContent).toContain('Глава 2')
     expect(container.textContent).toContain('Так совершены небо и земля')
     expect(container.textContent).toContain('не стыдились')
@@ -99,10 +125,14 @@ describe('BibleReader', () => {
       prevChapterBtn?.click()
     })
 
+    await act(async () => {
+      await new Promise((r) => setTimeout(r, 100))
+    })
+
     expect(container.textContent).toContain('Глава 1')
   })
 
-  it('открывает шторку толкования при клике на стих 1 и позволяет сменить автора на Женевскую Библию', async () => {
+  it('открывает шторку толкования при клике на стих 1 и позволяет сменить автора на Александра Лопухина', async () => {
     await mountReader()
 
     const verse1 = container.querySelector('[role="button"]') as HTMLElement
@@ -118,18 +148,18 @@ describe('BibleReader', () => {
     expect(dialog?.textContent).toContain('Уильям МакДональд')
     expect(dialog?.textContent).toContain('Первопричина всего сущего')
 
-    // Переключаем автора на Женевскую Библию
-    const genevaBtn = Array.from(dialog?.querySelectorAll('button') ?? []).find((b) =>
-      b.textContent?.includes('Женевская учебная Библия'),
+    // Переключаем автора на Александра Лопухина
+    const lopukhinBtn = Array.from(dialog?.querySelectorAll('button') ?? []).find(
+      (b) => b.textContent?.includes('Александр Лопухин') || b.textContent?.includes('Лопухин'),
     )
-    expect(genevaBtn).toBeDefined()
+    expect(lopukhinBtn).toBeDefined()
 
     await act(async () => {
-      genevaBtn?.click()
+      lopukhinBtn?.click()
     })
 
-    expect(dialog?.textContent).toContain('Женевская учебная Библия')
-    expect(dialog?.textContent).toContain('Сотворение из ничего')
+    expect(dialog?.textContent).toContain('Александр Лопухин')
+    expect(dialog?.textContent).toContain('Первый день творения')
   })
 
   it('закрывает шторку при нажатии на кнопку закрытия', async () => {

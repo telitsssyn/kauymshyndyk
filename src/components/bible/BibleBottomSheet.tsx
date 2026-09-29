@@ -1,9 +1,84 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { type ReactNode, useEffect, useState } from 'react'
 
 import { Arrow } from '@/components/Arrow'
-import { COMMENTARY_AUTHORS, type BibleVerse, type CommentaryAuthorKey, type TranslationKey } from '@/data/bible/types'
+import { COMMENTARY_AUTHORS, type BibleVerse, type CommentaryAuthorKey, type TranslationKey, type VerseCommentary } from '@/data/bible/types'
+
+/**
+ * Для Лопухина: первая непустая строка текста = заголовок (если нет явного title),
+ * подзаголовки вида «...» на отдельной строке рендерятся жирным.
+ */
+function parseCommentaryContent(comm: VerseCommentary): { title: string | null; body: ReactNode } {
+  const lines = comm.text.split('\n')
+
+  // Если есть явный title — просто рендерим текст
+  if (comm.title) {
+    return {
+      title: comm.title,
+      body: renderTextWithSubheadings(comm.text),
+    }
+  }
+
+  // Для Лопухина: извлекаем первую непустую строку как title
+  const firstNonEmpty = lines.findIndex((l) => l.trim().length > 0)
+  if (firstNonEmpty === -1) {
+    return { title: null, body: <span>{comm.text}</span> }
+  }
+
+  const extractedTitle = lines[firstNonEmpty].trim()
+  const restText = lines
+    .slice(firstNonEmpty + 1)
+    .join('\n')
+    .replace(/^\n+/, '') // убираем пустые строки после заголовка
+
+  return {
+    title: extractedTitle,
+    body: renderTextWithSubheadings(restText),
+  }
+}
+
+/** Рендерит текст, выделяя строки вида «...» как подзаголовки */
+function renderTextWithSubheadings(text: string): ReactNode {
+  if (!text.trim()) return null
+
+  const lines = text.split('\n')
+  const elements: ReactNode[] = []
+  let currentParagraph: string[] = []
+  let key = 0
+
+  const flushParagraph = () => {
+    if (currentParagraph.length > 0) {
+      elements.push(
+        <p key={key++} className="text-sm sm:text-lg leading-relaxed text-ink whitespace-pre-line">
+          {currentParagraph.join('\n')}
+        </p>,
+      )
+      currentParagraph = []
+    }
+  }
+
+  for (const line of lines) {
+    const trimmed = line.trim()
+    // Подзаголовок: строка, которая начинается и заканчивается кавычками-ёлочками
+    if (/^[«\u00AB].+[»\u00BB]$/.test(trimmed) && trimmed.length < 120) {
+      flushParagraph()
+      elements.push(
+        <h4
+          key={key++}
+          className="font-heading text-sm sm:text-base font-bold text-blue-dark mt-3 mb-1"
+        >
+          {trimmed}
+        </h4>,
+      )
+    } else {
+      currentParagraph.push(line)
+    }
+  }
+  flushParagraph()
+
+  return <>{elements}</>
+}
 
 interface BibleBottomSheetProps {
   bookName: string
@@ -48,6 +123,17 @@ export function BibleBottomSheet({
     }
   }, [verse])
 
+  // Автоматическое переключение на доступного автора при смене стиха
+  useEffect(() => {
+    if (!verse) return
+    const available = COMMENTARY_AUTHORS.filter((a) =>
+      verse.commentaries.some((c) => c.authorKey === a.key),
+    )
+    if (available.length > 0 && !available.some((a) => a.key === selectedAuthorKey)) {
+      setSelectedAuthorKey(available[0].key)
+    }
+  }, [verse, selectedAuthorKey])
+
   if (!verse) return null
 
   const verseText = verse.text[translation] ?? verse.text.rst
@@ -67,11 +153,21 @@ export function BibleBottomSheet({
   const hasPrev = verse.number > 1
   const hasNext = verse.number < totalVerses
 
-  // Выбираем активный комментарий из доступных для стиха
-  const activeCommentary =
-    verse.commentaries.find((c) => c.authorKey === selectedAuthorKey) ??
-    verse.commentaries[0] ??
+  // Доступные авторы толкований для данного стиха (строго уникальные)
+  const availableAuthors = COMMENTARY_AUTHORS.filter((author) =>
+    verse.commentaries.some((c) => c.authorKey === author.key),
+  )
+
+  // Текущий выбранный автор (с fallback на первого доступного)
+  const activeAuthor =
+    availableAuthors.find((a) => a.key === selectedAuthorKey) ??
+    availableAuthors[0] ??
     null
+
+  // Все комментарии выбранного автора для данного стиха
+  const activeCommentaries = activeAuthor
+    ? verse.commentaries.filter((c) => c.authorKey === activeAuthor.key)
+    : []
 
   return (
     <div className="fixed inset-0 z-50 flex justify-center">
@@ -130,69 +226,76 @@ export function BibleBottomSheet({
           {/* Блок толкований с переключением авторов */}
           {verse.commentaries.length > 0 ? (
             <div className="rounded-2xl border border-ink/10 bg-white/70 p-3.5 sm:p-5 shadow-xs space-y-3">
-              {/* Переключатель автора комментария */}
-              {verse.commentaries.length > 1 ? (
+              {/* Переключатель автора комментария (строго без дубликатов плашек) */}
+              {availableAuthors.length > 1 ? (
                 <div className="flex flex-wrap gap-1.5 border-b border-ink/10 pb-3">
-                  {verse.commentaries.map((c) => {
-                    const isSelected = activeCommentary?.authorKey === c.authorKey
-                    const authorMeta = COMMENTARY_AUTHORS.find((a) => a.key === c.authorKey)
+                  {availableAuthors.map((author) => {
+                    const isSelected = activeAuthor?.key === author.key
                     return (
                       <button
-                        key={c.authorKey}
+                        key={author.key}
                         type="button"
-                        onClick={() => setSelectedAuthorKey(c.authorKey)}
+                        onClick={() => setSelectedAuthorKey(author.key)}
                         className={`rounded-xl px-2.5 sm:px-3 py-1.5 text-xs font-heading font-semibold uppercase tracking-wider transition-colors ${
                           isSelected
                             ? 'bg-blue-dark text-white shadow-xs'
                             : 'bg-sand/60 text-ink hover:bg-ice'
                         }`}
                       >
-                        <span className="sm:hidden">{authorMeta?.shortName ?? c.authorName}</span>
-                        <span className="hidden sm:inline">{c.authorName}</span>
+                        <span className="sm:hidden">{author.shortName}</span>
+                        <span className="hidden sm:inline">{author.name}</span>
                       </button>
                     )
                   })}
                 </div>
               ) : null}
 
-              {activeCommentary ? (
+              {activeAuthor && activeCommentaries.length > 0 ? (
                 <>
                   <div className="flex flex-wrap items-center justify-between gap-2">
                     <span className="chip bg-blue-dark text-white text-xs">
                       Толкование
                     </span>
                     <span className="font-heading text-xs uppercase font-bold tracking-wider text-ink-soft">
-                      {activeCommentary.authorName}
+                      {activeAuthor.name}
+                      {activeAuthor.tagline ? ` • ${activeAuthor.tagline}` : ''}
                     </span>
                   </div>
 
-                  {activeCommentary.title ? (
-                    <h3 className="font-heading text-base sm:text-lg font-bold uppercase tracking-wide text-blue-dark pt-1">
-                      {activeCommentary.title}
-                    </h3>
-                  ) : null}
+                  <div className="space-y-4">
+                    {activeCommentaries.map((comm, idx) => {
+                      const parsed = parseCommentaryContent(comm)
+                      return (
+                        <div key={idx} className={idx > 0 ? 'pt-3 border-t border-ink/10' : ''}>
+                          {parsed.title ? (
+                            <h3 className="font-heading text-base sm:text-lg font-bold uppercase tracking-wide text-blue-dark pt-1 mb-2">
+                              {parsed.title}
+                            </h3>
+                          ) : null}
 
-                  <p className="text-sm sm:text-lg leading-relaxed text-ink">
-                    {activeCommentary.text}
-                  </p>
+                          <div>{parsed.body}</div>
 
-                  {activeCommentary.crossReferences && activeCommentary.crossReferences.length > 0 ? (
-                    <div className="mt-3 pt-3 border-t border-ink/10">
-                      <div className="text-xs uppercase font-heading font-semibold tracking-wider text-ink-soft mb-1.5">
-                        Параллельные места Писания:
-                      </div>
-                      <div className="flex flex-wrap gap-1.5">
-                        {activeCommentary.crossReferences.map((ref) => (
-                          <span
-                            key={ref}
-                            className="rounded-md bg-ice px-2 py-0.5 text-xs font-semibold text-blue-dark"
-                          >
-                            {ref}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                  ) : null}
+                          {comm.crossReferences && comm.crossReferences.length > 0 ? (
+                            <div className="mt-3 pt-3 border-t border-ink/10">
+                              <div className="text-xs uppercase font-heading font-semibold tracking-wider text-ink-soft mb-1.5">
+                                Параллельные места Писания:
+                              </div>
+                              <div className="flex flex-wrap gap-1.5">
+                                {comm.crossReferences.map((ref) => (
+                                  <span
+                                    key={ref}
+                                    className="rounded-md bg-ice px-2 py-0.5 text-xs font-semibold text-blue-dark"
+                                  >
+                                    {ref}
+                                  </span>
+                                ))}
+                              </div>
+                            </div>
+                          ) : null}
+                        </div>
+                      )
+                    })}
+                  </div>
                 </>
               ) : null}
             </div>

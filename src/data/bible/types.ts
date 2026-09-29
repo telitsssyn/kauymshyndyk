@@ -8,7 +8,7 @@ export interface TranslationMeta {
   description: string
 }
 
-export type CommentaryAuthorKey = 'macdonald' | 'geneva'
+export type CommentaryAuthorKey = 'macdonald' | 'lopukhin'
 
 export interface CommentaryAuthorMeta {
   key: CommentaryAuthorKey
@@ -45,7 +45,6 @@ export interface BibleBookMeta {
   shortName: string
   testament: 'old' | 'new'
   chaptersCount: number
-  availableChapters: number[]
 }
 
 export const BIBLE_TRANSLATIONS: TranslationMeta[] = [
@@ -73,9 +72,9 @@ export const COMMENTARY_AUTHORS: CommentaryAuthorMeta[] = [
     tagline: 'Практический евангельский комментарий',
   },
   {
-    key: 'geneva',
-    name: 'Женевская учебная Библия',
-    shortName: 'Женевская',
-    tagline: 'Богословский и контекстуальный разбор',
+    key: 'lopukhin',
+    name: 'Александр Лопухин',
+    shortName: 'Лопухин',
+    tagline: 'Классическая православная Толковая Библия',
   },
 ]

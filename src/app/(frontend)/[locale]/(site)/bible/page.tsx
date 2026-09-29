@@ -4,7 +4,7 @@ import { getTranslations, setRequestLocale } from 'next-intl/server'
 import { BibleReader } from '@/components/bible/BibleReader'
 import { Breadcrumbs } from '@/components/Breadcrumbs'
 import { BrushHeading } from '@/components/BrushHeading'
-import { GENESIS_1 } from '@/data/bible/genesis-1'
+import { loadBibleChapterServer } from '@/data/bible'
 import { buildMetadata } from '@/lib/metadata'
 
 export const revalidate = 3600
@@ -26,9 +26,10 @@ export default async function BiblePage({
   const { locale } = await params
   setRequestLocale(locale)
 
-  const [t, tNav] = await Promise.all([
+  const [t, tNav, initialChapter] = await Promise.all([
     getTranslations('bible'),
     getTranslations('nav'),
+    loadBibleChapterServer('genesis', 1),
   ])
 
   return (
@@ -49,7 +50,7 @@ export default async function BiblePage({
         </p>
       </div>
 
-      <BibleReader initialChapter={GENESIS_1} />
+      <BibleReader initialChapter={initialChapter ?? undefined} />
     </div>
   )
 }

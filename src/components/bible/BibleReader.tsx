@@ -1,20 +1,28 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 
 import { Arrow } from '@/components/Arrow'
 import {
   BIBLE_TRANSLATIONS,
-  getBibleChapter,
-  isChapterAvailable,
+  fetchBibleChapter,
   type BibleChapter,
   type BibleVerse,
   type TranslationKey,
 } from '@/data/bible'
-import { GENESIS_1 } from '@/data/bible/genesis-1'
+import { BIBLE_BOOKS } from '@/data/bible/books'
 
 import { BibleBookSelector } from './BibleBookSelector'
 import { BibleBottomSheet } from './BibleBottomSheet'
+
+const LS_KEY = 'bible-reading-progress'
+
+function getAdjacentBook(currentSlug: string, direction: 'prev' | 'next') {
+  const idx = BIBLE_BOOKS.findIndex((b) => b.slug === currentSlug)
+  if (idx === -1) return null
+  const adjacentIdx = direction === 'next' ? idx + 1 : idx - 1
+  return BIBLE_BOOKS[adjacentIdx] ?? null
+}
 
 interface BibleReaderProps {
   initialChapter?: BibleChapter
@@ -23,19 +31,70 @@ interface BibleReaderProps {
 type FontSize = 'normal' | 'large' | 'huge'
 
 export function BibleReader({ initialChapter }: BibleReaderProps) {
-  const [bookSlug, setBookSlug] = useState('genesis')
+  const [bookSlug, setBookSlug] = useState(initialChapter?.bookSlug ?? 'genesis')
   const [chapterNumber, setChapterNumber] = useState(initialChapter?.chapter ?? 1)
+  const [chapter, setChapter] = useState<BibleChapter | null>(initialChapter ?? null)
+  const [isLoading, setIsLoading] = useState(false)
   const [translation, setTranslation] = useState<TranslationKey>('rst')
   const [isTranslationOpen, setIsTranslationOpen] = useState(false)
   const [selectedVerseNumber, setSelectedVerseNumber] = useState<number | null>(null)
   const [isBookSelectorOpen, setIsBookSelectorOpen] = useState(false)
   const [fontSize, setFontSize] = useState<FontSize>('large')
   const [showHint, setShowHint] = useState(true)
+  const [readingProgress, setReadingProgress] = useState(0)
 
   const translationRef = useRef<HTMLDivElement | null>(null)
+  const articleRef = useRef<HTMLElement | null>(null)
 
-  // Получаем данные текущей главы
-  const chapter: BibleChapter = getBibleChapter(bookSlug, chapterNumber) ?? initialChapter ?? GENESIS_1
+  // Динамическая загрузка главы из JSON
+  useEffect(() => {
+    // Пропускаем, если initialChapter совпадает с запрошенной главой
+    if (
+      initialChapter &&
+      bookSlug === initialChapter.bookSlug &&
+      chapterNumber === initialChapter.chapter
+    ) {
+      setChapter(initialChapter)
+      return
+    }
+
+    let cancelled = false
+    setIsLoading(true)
+
+    fetchBibleChapter(bookSlug, chapterNumber).then((data) => {
+      if (cancelled) return
+      setChapter(data)
+      setIsLoading(false)
+    })
+
+    return () => {
+      cancelled = true
+    }
+  }, [bookSlug, chapterNumber, initialChapter])
+
+  // Сохранение прогресса чтения в localStorage
+  useEffect(() => {
+    if (chapter) {
+      try {
+        localStorage.setItem(LS_KEY, JSON.stringify({ bookSlug, chapterNumber }))
+      } catch { /* ignore */ }
+    }
+  }, [bookSlug, chapterNumber, chapter])
+
+  // Восстановление прогресса при первой загрузке
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(LS_KEY)
+      if (saved) {
+        const { bookSlug: savedSlug, chapterNumber: savedChapter } = JSON.parse(saved)
+        if (savedSlug && savedChapter && (savedSlug !== 'genesis' || savedChapter !== 1)) {
+          setBookSlug(savedSlug)
+          setChapterNumber(savedChapter)
+        }
+      }
+    } catch { /* ignore */ }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   // Закрытие меню перевода по клику снаружи
   useEffect(() => {
@@ -48,9 +107,60 @@ export function BibleReader({ initialChapter }: BibleReaderProps) {
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [])
 
+  // Progress bar при чтении
+  useEffect(() => {
+    const handleScroll = () => {
+      if (!articleRef.current) return
+      const rect = articleRef.current.getBoundingClientRect()
+      const total = articleRef.current.scrollHeight
+      const visible = window.innerHeight
+      const scrolled = -rect.top + visible
+      const progress = Math.min(100, Math.max(0, (scrolled / total) * 100))
+      setReadingProgress(progress)
+    }
+    window.addEventListener('scroll', handleScroll, { passive: true })
+    handleScroll()
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [chapter])
+
+  // Клавиатурная навигация (←/→ для глав)
+  const handleNavKeyDown = useCallback(
+    (e: KeyboardEvent) => {
+      if (!chapter) return
+      // Не перехватываем, если фокус в input/textarea или открыта модалка
+      const tag = (e.target as HTMLElement)?.tagName
+      if (tag === 'INPUT' || tag === 'TEXTAREA') return
+      if (isBookSelectorOpen || selectedVerseNumber !== null) return
+
+      if (e.key === 'ArrowLeft') {
+        e.preventDefault()
+        if (chapterNumber > 1) {
+          handleSelectChapter(bookSlug, chapterNumber - 1)
+        } else {
+          const prevBook = getAdjacentBook(bookSlug, 'prev')
+          if (prevBook) handleSelectChapter(prevBook.slug, prevBook.chaptersCount)
+        }
+      } else if (e.key === 'ArrowRight') {
+        e.preventDefault()
+        if (chapterNumber < chapter.totalChapters) {
+          handleSelectChapter(bookSlug, chapterNumber + 1)
+        } else {
+          const nextBook = getAdjacentBook(bookSlug, 'next')
+          if (nextBook) handleSelectChapter(nextBook.slug, 1)
+        }
+      }
+    },
+    [chapter, chapterNumber, bookSlug, isBookSelectorOpen, selectedVerseNumber],
+  )
+
+  useEffect(() => {
+    document.addEventListener('keydown', handleNavKeyDown)
+    return () => document.removeEventListener('keydown', handleNavKeyDown)
+  }, [handleNavKeyDown])
+
   const selectedVerse: BibleVerse | null =
     selectedVerseNumber !== null
-      ? chapter.verses.find((v) => v.number === selectedVerseNumber) ?? null
+      ? chapter?.verses.find((v) => v.number === selectedVerseNumber) ?? null
       : null
 
   const activeTranslationMeta =
@@ -63,9 +173,6 @@ export function BibleReader({ initialChapter }: BibleReaderProps) {
       ? 'text-xl sm:text-2xl leading-loose'
       : 'text-lg sm:text-xl leading-relaxed'
 
-  const hasPrevChapter = chapterNumber > 1 && isChapterAvailable(bookSlug, chapterNumber - 1)
-  const hasNextChapter = isChapterAvailable(bookSlug, chapterNumber + 1)
-
   const handleSelectChapter = (newBookSlug: string, newChapter: number) => {
     setBookSlug(newBookSlug)
     setChapterNumber(newChapter)
@@ -77,10 +184,82 @@ export function BibleReader({ initialChapter }: BibleReaderProps) {
     }, 100)
   }
 
+  // Показываем скелетон при загрузке
+  if (isLoading) {
+    return (
+      <div className="mx-auto max-w-3xl">
+        <div className="card p-4 sm:p-8 md:p-10 border border-ink/10 bg-white/90 shadow-sm">
+          <div className="animate-pulse space-y-4">
+            <div className="h-8 bg-sand/60 rounded-xl w-48 mx-auto" />
+            <div className="h-5 bg-sand/40 rounded-lg w-32 mx-auto" />
+            <div className="mt-8 space-y-3">
+              {Array.from({ length: 12 }).map((_, i) => (
+                <div key={i} className="flex gap-2.5">
+                  <div className="h-6 w-6 bg-sand/60 rounded-md shrink-0" />
+                  <div className="flex-1 space-y-1.5">
+                    <div className="h-4 bg-sand/40 rounded" />
+                    <div className="h-4 bg-sand/30 rounded w-3/4" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  // Если главы нет на диске
+  if (!chapter) {
+    return (
+      <div className="mx-auto max-w-3xl">
+        <div className="card p-8 sm:p-12 border border-ink/10 bg-white/90 shadow-sm text-center">
+          <p className="text-xl font-heading font-bold text-ink mb-2">Глава временно недоступна</p>
+          <p className="text-sm text-ink-soft mb-6">
+            Текст этой главы сейчас загружается или находится в процессе добавления.
+          </p>
+          <div className="flex flex-wrap justify-center gap-3">
+            <button
+              type="button"
+              onClick={() => setIsBookSelectorOpen(true)}
+              className="btn btn-secondary text-sm"
+            >
+              Выбрать другую главу
+            </button>
+            <button
+              type="button"
+              onClick={() => handleSelectChapter('genesis', 1)}
+              className="btn btn-primary text-sm"
+            >
+              Перейти к Бытие 1
+            </button>
+          </div>
+        </div>
+        <BibleBookSelector
+          currentBookSlug={bookSlug}
+          currentChapter={chapterNumber}
+          isOpen={isBookSelectorOpen}
+          onClose={() => setIsBookSelectorOpen(false)}
+          onSelectChapter={handleSelectChapter}
+        />
+      </div>
+    )
+  }
+
   return (
     <div className="mx-auto max-w-3xl">
       {/* Панель управления чтением */}
-      <div className="sticky top-16 z-30 mb-4 sm:mb-6 rounded-2xl border border-ink/10 bg-paper/95 p-2 sm:p-2.5 shadow-sm backdrop-blur">
+      <div className="sticky top-16 z-30 mb-4 sm:mb-6 rounded-2xl border border-ink/10 bg-paper/95 p-2 sm:p-2.5 shadow-sm backdrop-blur relative">
+        {/* Progress bar чтения — абсолютно позиционирован внутри тулбара */}
+        <div
+          className="absolute bottom-0 left-0 h-[2px] rounded-b-2xl bg-blue-dark/60 transition-[width] duration-150 ease-out"
+          style={{ width: `${readingProgress}%` }}
+          role="progressbar"
+          aria-valuenow={Math.round(readingProgress)}
+          aria-valuemin={0}
+          aria-valuemax={100}
+          aria-label="Прогресс чтения главы"
+        />
         <div className="flex items-center justify-between gap-1.5 sm:gap-2.5">
           {/* Кнопка выбора книги и главы */}
           <button
@@ -218,7 +397,7 @@ export function BibleReader({ initialChapter }: BibleReaderProps) {
               💬
             </span>
             <span>
-              <strong>Совет:</strong> нажмите на любой стих, чтобы открыть толкования (Уильям МакДональд и Женевская Библия).
+              <strong>Совет:</strong> нажмите на любой стих, чтобы открыть толкования (Уильям МакДональд и Александр Лопухин).
             </span>
           </div>
           <button
@@ -233,7 +412,7 @@ export function BibleReader({ initialChapter }: BibleReaderProps) {
       ) : null}
 
       {/* Текст Библии (строго без засечек font-sans) */}
-      <article className="card p-4 sm:p-8 md:p-10 border border-ink/10 bg-white/90 shadow-sm font-sans">
+      <article ref={articleRef} className="card p-4 sm:p-8 md:p-10 border border-ink/10 bg-white/90 shadow-sm font-sans">
         <div className="border-b border-ink/10 pb-4 sm:pb-6 mb-4 sm:mb-6 text-center">
           <span className="chip bg-sand/60 text-ink-soft text-xs uppercase mb-2">
             {activeTranslationMeta.name} ({activeTranslationMeta.badge})
@@ -306,51 +485,73 @@ export function BibleReader({ initialChapter }: BibleReaderProps) {
             Глава {chapter.chapter} из {chapter.totalChapters}
           </div>
 
-          <div className="grid grid-cols-2 gap-2.5 sm:flex sm:items-center sm:justify-between sm:gap-3">
-            {/* Предыдущая глава */}
-            {hasPrevChapter ? (
-              <button
-                type="button"
-                onClick={() => handleSelectChapter(bookSlug, chapterNumber - 1)}
-                className="btn-outline text-xs sm:text-sm px-3 sm:px-4 py-2.5 sm:py-2 inline-flex items-center justify-center gap-1.5 w-full sm:w-auto"
-              >
-                <Arrow direction="left" className="h-3.5 w-3.5 shrink-0" />
-                <span>Глава {chapterNumber - 1}</span>
-              </button>
-            ) : (
-              <div className="hidden sm:block" />
-            )}
+          {(() => {
+            const prevBook = getAdjacentBook(bookSlug, 'prev')
+            const nextBook = getAdjacentBook(bookSlug, 'next')
+            const isFirstChapter = chapterNumber === 1
+            const isLastChapter = chapterNumber >= chapter.totalChapters
+            const hasPrevNav = !isFirstChapter || prevBook
+            const hasNextNav = !isLastChapter || nextBook
 
-            {/* Десктопный счетчик глав */}
-            <span className="hidden sm:inline text-sm font-semibold uppercase tracking-wider text-ink-soft">
-              Глава {chapter.chapter} из {chapter.totalChapters}
-            </span>
+            return (
+              <div className="grid grid-cols-2 gap-2.5 sm:flex sm:items-center sm:justify-between sm:gap-3">
+                {/* Предыдущая глава или книга */}
+                {hasPrevNav ? (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (!isFirstChapter) {
+                        handleSelectChapter(bookSlug, chapterNumber - 1)
+                      } else if (prevBook) {
+                        handleSelectChapter(prevBook.slug, prevBook.chaptersCount)
+                      }
+                    }}
+                    className="btn-outline text-xs sm:text-sm px-3 sm:px-4 py-2.5 sm:py-2 inline-flex items-center justify-center gap-1.5 w-full sm:w-auto min-w-0"
+                  >
+                    <Arrow direction="left" className="h-3.5 w-3.5 shrink-0" />
+                    <span className="truncate">
+                      {!isFirstChapter
+                        ? `Глава ${chapterNumber - 1}`
+                        : `${prevBook!.shortName} ${prevBook!.chaptersCount}`}
+                    </span>
+                  </button>
+                ) : (
+                  <div className="hidden sm:block" />
+                )}
 
-            {/* Следующая глава */}
-            {hasNextChapter ? (
-              <button
-                type="button"
-                onClick={() => handleSelectChapter(bookSlug, chapterNumber + 1)}
-                className={`btn-primary text-xs sm:text-sm px-3 sm:px-4 py-2.5 sm:py-2 inline-flex items-center justify-center gap-1.5 w-full sm:w-auto ${
-                  !hasPrevChapter ? 'col-span-2' : ''
-                }`}
-              >
-                <span>Глава {chapterNumber + 1}</span>
-                <Arrow className="h-3.5 w-3.5 shrink-0" />
-              </button>
-            ) : (
-              <button
-                type="button"
-                onClick={() => alert(`Глава ${chapterNumber + 1} находится в подготовке.`)}
-                className={`btn-primary text-xs sm:text-sm px-3 sm:px-4 py-2.5 sm:py-2 inline-flex items-center justify-center gap-1.5 w-full sm:w-auto opacity-75 ${
-                  !hasPrevChapter ? 'col-span-2' : ''
-                }`}
-              >
-                <span>Глава {chapterNumber + 1}</span>
-                <Arrow className="h-3.5 w-3.5 shrink-0" />
-              </button>
-            )}
-          </div>
+                {/* Десктопный счетчик глав */}
+                <span className="hidden sm:inline text-sm font-semibold uppercase tracking-wider text-ink-soft">
+                  Глава {chapter.chapter} из {chapter.totalChapters}
+                </span>
+
+                {/* Следующая глава или книга */}
+                {hasNextNav ? (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (!isLastChapter) {
+                        handleSelectChapter(bookSlug, chapterNumber + 1)
+                      } else if (nextBook) {
+                        handleSelectChapter(nextBook.slug, 1)
+                      }
+                    }}
+                    className={`btn-primary text-xs sm:text-sm px-3 sm:px-4 py-2.5 sm:py-2 inline-flex items-center justify-center gap-1.5 w-full sm:w-auto min-w-0 ${
+                      !hasPrevNav ? 'col-span-2' : ''
+                    }`}
+                  >
+                    <span className="truncate">
+                      {!isLastChapter
+                        ? `Глава ${chapterNumber + 1}`
+                        : `${nextBook!.name} →`}
+                    </span>
+                    <Arrow className="h-3.5 w-3.5 shrink-0" />
+                  </button>
+                ) : (
+                  <div className="hidden sm:block" />
+                )}
+              </div>
+            )
+          })()}
         </div>
       </article>
 
