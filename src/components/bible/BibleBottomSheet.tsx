@@ -1,9 +1,19 @@
 'use client'
 
+import { useTranslations } from 'next-intl'
 import { type ReactNode, useEffect, useState } from 'react'
 
 import { Arrow } from '@/components/Arrow'
-import { COMMENTARY_AUTHORS, type BibleVerse, type CommentaryAuthorKey, type TranslationKey, type VerseCommentary } from '@/data/bible/types'
+import {
+  BIBLE_TRANSLATIONS,
+  COMMENTARY_AUTHORS,
+  type BibleVerseText,
+  type CommentaryAuthorKey,
+  type TranslationKey,
+  type VerseCommentary,
+} from '@/data/bible/types'
+
+export type CommentaryStatus = 'idle' | 'loading' | 'ready' | 'error'
 
 /**
  * Для Лопухина: первая непустая строка текста = заголовок (если нет явного title),
@@ -83,7 +93,11 @@ function renderTextWithSubheadings(text: string): ReactNode {
 interface BibleBottomSheetProps {
   bookName: string
   chapterNumber: number
-  verse: BibleVerse | null
+  verse: BibleVerseText | null
+  /** Толкования стиха; undefined — ещё не загружены */
+  commentaries: VerseCommentary[] | undefined
+  commentaryStatus: CommentaryStatus
+  onRetry: () => void
   totalVerses: number
   translation: TranslationKey
   onClose: () => void
@@ -94,12 +108,18 @@ export function BibleBottomSheet({
   bookName,
   chapterNumber,
   verse,
+  commentaries,
+  commentaryStatus,
+  onRetry,
   totalVerses,
   translation,
   onClose,
   onSelectVerse,
 }: BibleBottomSheetProps) {
+  const t = useTranslations('bible.sheet')
   const [copied, setCopied] = useState(false)
+  // Предпочтение читателя; если у стиха нет толкования этого автора,
+  // ниже берётся первый доступный, а выбор сохраняется для следующих стихов
   const [selectedAuthorKey, setSelectedAuthorKey] = useState<CommentaryAuthorKey>('macdonald')
 
   // Закрытие по Escape
@@ -123,24 +143,15 @@ export function BibleBottomSheet({
     }
   }, [verse])
 
-  // Автоматическое переключение на доступного автора при смене стиха
-  useEffect(() => {
-    if (!verse) return
-    const available = COMMENTARY_AUTHORS.filter((a) =>
-      verse.commentaries.some((c) => c.authorKey === a.key),
-    )
-    if (available.length > 0 && !available.some((a) => a.key === selectedAuthorKey)) {
-      setSelectedAuthorKey(available[0].key)
-    }
-  }, [verse, selectedAuthorKey])
-
   if (!verse) return null
 
   const verseText = verse.text[translation] ?? verse.text.rst
+  const translationLabel =
+    BIBLE_TRANSLATIONS.find((tr) => tr.key === translation)?.shortName ?? BIBLE_TRANSLATIONS[0].shortName
+  const verseRef = `${bookName} ${chapterNumber}:${verse.number}`
 
   const handleCopy = async () => {
-    const translationLabel = translation === 'cars' ? 'Восточный перевод' : 'Синодальный'
-    const textToCopy = `${bookName} ${chapterNumber}:${verse.number} (${translationLabel}) — «${verseText}»`
+    const textToCopy = `${verseRef} (${translationLabel}) — «${verseText}»`
     try {
       await navigator.clipboard.writeText(textToCopy)
       setCopied(true)
@@ -152,10 +163,11 @@ export function BibleBottomSheet({
 
   const hasPrev = verse.number > 1
   const hasNext = verse.number < totalVerses
+  const verseCommentaries = commentaries ?? []
 
   // Доступные авторы толкований для данного стиха (строго уникальные)
   const availableAuthors = COMMENTARY_AUTHORS.filter((author) =>
-    verse.commentaries.some((c) => c.authorKey === author.key),
+    verseCommentaries.some((c) => c.authorKey === author.key),
   )
 
   // Текущий выбранный автор (с fallback на первого доступного)
@@ -166,8 +178,12 @@ export function BibleBottomSheet({
 
   // Все комментарии выбранного автора для данного стиха
   const activeCommentaries = activeAuthor
-    ? verse.commentaries.filter((c) => c.authorKey === activeAuthor.key)
+    ? verseCommentaries.filter((c) => c.authorKey === activeAuthor.key)
     : []
+
+  const isLoadingCommentaries =
+    verse.hasCommentary && !commentaries && commentaryStatus !== 'error'
+  const failedCommentaries = verse.hasCommentary && !commentaries && commentaryStatus === 'error'
 
   return (
     <div className="fixed inset-0 z-50 flex justify-center">
@@ -182,7 +198,7 @@ export function BibleBottomSheet({
       <section
         role="dialog"
         aria-modal="true"
-        aria-label={`Толкование: ${bookName} ${chapterNumber}:${verse.number}`}
+        aria-label={t('dialog', { ref: verseRef })}
         className="fixed bottom-0 inset-x-0 mx-auto w-full max-w-2xl max-h-[88vh] sm:max-h-[82vh] flex flex-col rounded-t-3xl border-t border-ink/15 bg-paper shadow-2xl z-50 animate-in slide-in-from-bottom duration-250 ease-out pb-[env(safe-area-inset-bottom,0px)]"
       >
         {/* Индикатор для свайпа / верхняя полоса */}
@@ -194,17 +210,17 @@ export function BibleBottomSheet({
         <div className="flex items-center justify-between px-4 sm:px-5 py-2 border-b border-ink/10">
           <div className="flex items-baseline gap-2 min-w-0">
             <h2 className="font-heading text-lg sm:text-2xl font-bold tracking-normal text-ink truncate">
-              {bookName} {chapterNumber}:{verse.number}
+              {verseRef}
             </h2>
             <span className="text-[11px] sm:text-xs uppercase font-heading font-semibold text-ink-soft shrink-0">
-              {translation === 'cars' ? 'Восточный' : 'Синодальный'}
+              {translationLabel}
             </span>
           </div>
 
           <button
             type="button"
             onClick={onClose}
-            aria-label="Закрыть толкование"
+            aria-label={t('close')}
             className="flex h-9 w-9 items-center justify-center rounded-full text-ink hover:bg-ice transition-colors shrink-0"
           >
             <span className="text-xl leading-none">✕</span>
@@ -216,7 +232,7 @@ export function BibleBottomSheet({
           {/* Цитата выбранного стиха (шрифт без засечек) */}
           <div className="rounded-2xl border border-ink/10 bg-white p-3.5 sm:p-4 shadow-xs">
             <span className="chip bg-blue-light/30 text-blue-dark text-xs mb-1.5 sm:mb-2">
-              Стих {verse.number}
+              {t('verse', { number: verse.number })}
             </span>
             <p className="font-sans text-base sm:text-xl font-medium leading-relaxed text-ink italic mt-1">
               «{verseText}»
@@ -224,7 +240,25 @@ export function BibleBottomSheet({
           </div>
 
           {/* Блок толкований с переключением авторов */}
-          {verse.commentaries.length > 0 ? (
+          {isLoadingCommentaries ? (
+            <div
+              role="status"
+              className="rounded-2xl border border-ink/10 bg-white/60 p-4 sm:p-5 space-y-3 animate-pulse"
+            >
+              <span className="sr-only">{t('loading')}</span>
+              <div className="h-5 w-40 rounded bg-sand/60" />
+              <div className="h-4 rounded bg-sand/40" />
+              <div className="h-4 w-5/6 rounded bg-sand/40" />
+              <div className="h-4 w-2/3 rounded bg-sand/30" />
+            </div>
+          ) : failedCommentaries ? (
+            <div className="rounded-2xl border border-ink/10 bg-white/60 p-4 text-center text-ink-soft space-y-3">
+              <p>{t('loadError')}</p>
+              <button type="button" onClick={onRetry} className="btn-outline text-sm px-4">
+                {t('retry')}
+              </button>
+            </div>
+          ) : verseCommentaries.length > 0 ? (
             <div className="rounded-2xl border border-ink/10 bg-white/70 p-3.5 sm:p-5 shadow-xs space-y-3">
               {/* Переключатель автора комментария (строго без дубликатов плашек) */}
               {availableAuthors.length > 1 ? (
@@ -254,7 +288,7 @@ export function BibleBottomSheet({
                 <>
                   <div className="flex flex-wrap items-center justify-between gap-2">
                     <span className="chip bg-blue-dark text-white text-xs">
-                      Толкование
+                      {t('commentary')}
                     </span>
                     <span className="font-heading text-xs uppercase font-bold tracking-wider text-ink-soft">
                       {activeAuthor.name}
@@ -278,7 +312,7 @@ export function BibleBottomSheet({
                           {comm.crossReferences && comm.crossReferences.length > 0 ? (
                             <div className="mt-3 pt-3 border-t border-ink/10">
                               <div className="text-xs uppercase font-heading font-semibold tracking-wider text-ink-soft mb-1.5">
-                                Параллельные места Писания:
+                                {t('crossRefs')}
                               </div>
                               <div className="flex flex-wrap gap-1.5">
                                 {comm.crossReferences.map((ref) => (
@@ -301,7 +335,7 @@ export function BibleBottomSheet({
             </div>
           ) : (
             <div className="rounded-2xl border border-ink/10 bg-white/60 p-4 text-center text-ink-soft">
-              Для этого стиха толкование готовится.
+              {t('noCommentary')}
             </div>
           )}
         </div>
@@ -315,7 +349,7 @@ export function BibleBottomSheet({
             className="btn-outline text-xs sm:text-sm px-2.5 sm:px-3 py-2 disabled:opacity-30 disabled:pointer-events-none inline-flex items-center gap-1 sm:gap-1.5 shrink-0"
           >
             <Arrow direction="left" className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
-            <span>{hasPrev ? `Стих ${verse.number - 1}` : 'Стих 1'}</span>
+            <span>{t('verse', { number: hasPrev ? verse.number - 1 : 1 })}</span>
           </button>
 
           <button
@@ -323,7 +357,7 @@ export function BibleBottomSheet({
             onClick={handleCopy}
             className="btn text-xs sm:text-sm px-2.5 sm:px-3 py-2 border border-ink/15 hover:bg-ice transition-colors inline-flex items-center gap-1 sm:gap-1.5 shrink-0"
           >
-            <span>{copied ? 'Скопировано! ✓' : 'Скопировать'}</span>
+            <span>{copied ? t('copied') : t('copy')}</span>
           </button>
 
           <button
@@ -332,7 +366,7 @@ export function BibleBottomSheet({
             onClick={() => onSelectVerse(verse.number + 1)}
             className="btn-primary text-xs sm:text-sm px-2.5 sm:px-3 py-2 disabled:opacity-30 disabled:pointer-events-none inline-flex items-center gap-1 sm:gap-1.5 shrink-0"
           >
-            <span>{hasNext ? `Стих ${verse.number + 1}` : `Стих ${totalVerses}`}</span>
+            <span>{t('verse', { number: hasNext ? verse.number + 1 : totalVerses })}</span>
             <Arrow className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
           </button>
         </div>

@@ -39,6 +39,33 @@ export interface BibleChapter {
   verses: BibleVerse[]
 }
 
+/**
+ * Глава без толкований — то, что нужно для отрисовки страницы.
+ * Толкования занимают бо́льшую часть файла главы (до сотен КБ), поэтому
+ * в HTML они не попадают и подгружаются только по клику на стих.
+ */
+export interface BibleVerseText {
+  number: number
+  text: Record<TranslationKey, string>
+  hasCommentary: boolean
+}
+
+export interface BibleChapterText extends Omit<BibleChapter, 'verses'> {
+  verses: BibleVerseText[]
+}
+
+export const toChapterText = (chapter: BibleChapter): BibleChapterText => ({
+  bookSlug: chapter.bookSlug,
+  bookName: chapter.bookName,
+  chapter: chapter.chapter,
+  totalChapters: chapter.totalChapters,
+  verses: chapter.verses.map((v) => ({
+    number: v.number,
+    text: v.text,
+    hasCommentary: v.commentaries.length > 0,
+  })),
+})
+
 export interface BibleBookMeta {
   slug: string
   name: string

@@ -1,20 +1,22 @@
 import type { Metadata } from 'next'
 import { getTranslations, setRequestLocale } from 'next-intl/server'
+import { notFound } from 'next/navigation'
 
 import { BibleReader } from '@/components/bible/BibleReader'
+import { ContinueReading } from '@/components/bible/ContinueReading'
 import { Breadcrumbs } from '@/components/Breadcrumbs'
 import { BrushHeading } from '@/components/BrushHeading'
-import { loadBibleChapterServer } from '@/data/bible/server'
+import { loadBibleChapterText } from '@/data/bible/server'
 import { buildMetadata } from '@/lib/metadata'
 
-export const revalidate = 3600
+export const revalidate = 86400
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations('bible')
   return buildMetadata({
     href: '/bible',
-    title: `${t('title')} — Бытие`,
-    description: 'Чтение Священного Писания в Синодальном и Восточном переводах с толкованиями.',
+    title: t('title'),
+    description: t('metaDescription'),
   })
 }
 
@@ -26,11 +28,12 @@ export default async function BiblePage({
   const { locale } = await params
   setRequestLocale(locale)
 
-  const [t, tNav, initialChapter] = await Promise.all([
+  const [t, tNav, chapter] = await Promise.all([
     getTranslations('bible'),
     getTranslations('nav'),
-    loadBibleChapterServer('genesis', 1),
+    loadBibleChapterText('genesis', 1),
   ])
+  if (!chapter) notFound()
 
   return (
     <div className="container-site py-4 sm:py-10">
@@ -45,12 +48,15 @@ export default async function BiblePage({
         <BrushHeading as="h1" className="text-3xl sm:text-5xl">
           {t('title')}
         </BrushHeading>
-        <p className="mt-1 sm:mt-2 text-sm sm:text-lg text-ink-soft">
-          Синодальный и Восточный переводы с толкованиями
-        </p>
+        <p className="mt-1 sm:mt-2 text-sm sm:text-lg text-ink-soft">{t('subtitle')}</p>
       </div>
 
-      <BibleReader initialChapter={initialChapter ?? undefined} />
+      <div className="mx-auto max-w-3xl">
+        <ContinueReading />
+      </div>
+
+      {/* На общей странице стартовая глава не запоминается как «место чтения» */}
+      <BibleReader chapter={chapter} trackProgress={false} />
     </div>
   )
 }

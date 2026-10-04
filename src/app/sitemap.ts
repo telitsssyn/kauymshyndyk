@@ -1,5 +1,6 @@
 import type { MetadataRoute } from 'next'
 
+import { BIBLE_BOOKS } from '@/data/bible/books'
 import { getPathname } from '@/i18n/navigation'
 import { routing } from '@/i18n/routing'
 import { getNewsList, getSermonsList } from '@/lib/queries'
@@ -29,6 +30,25 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       url: base + getPathname({ locale, href: pathname }),
     })),
   )
+
+  // Каждая глава Библии — отдельная страница
+  for (const locale of routing.locales) {
+    for (const book of BIBLE_BOOKS) {
+      for (let chapter = 1; chapter <= book.chaptersCount; chapter++) {
+        entries.push({
+          url:
+            base +
+            getPathname({
+              locale,
+              href: {
+                pathname: '/bible/[book]/[chapter]',
+                params: { book: book.slug, chapter: String(chapter) },
+              },
+            }),
+        })
+      }
+    }
+  }
 
   try {
     const [news, sermons] = await Promise.all([getNewsList(100), getSermonsList(100)])

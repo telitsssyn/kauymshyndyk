@@ -8,6 +8,34 @@ import { useEffect, useRef, useState } from 'react'
 
 const storageKey = (slug: string) => `sermon-notes:${slug}`
 
+const persist = (slug: string, value: string) => {
+  if (value.trim()) {
+    localStorage.setItem(storageKey(slug), value)
+  } else {
+    localStorage.removeItem(storageKey(slug))
+  }
+}
+
+type Pending = { slug: string; value: string } | null
+type Ref<T> = { current: T }
+
+// Немедленно записать отложенное: при уходе со страницы, закрытии вкладки
+// или смене проповеди последние символы не должны теряться.
+const flushPending = (
+  pending: Ref<Pending>,
+  timer: Ref<ReturnType<typeof setTimeout> | undefined>,
+) => {
+  clearTimeout(timer.current)
+  const p = pending.current
+  pending.current = null
+  if (!p) return
+  try {
+    persist(p.slug, p.value)
+  } catch {
+    // Нет места или доступа
+  }
+}
+
 export function SermonNotes({ slug }: { slug: string }) {
   const t = useTranslations('sermons.notes')
   const [text, setText] = useState('')
@@ -16,6 +44,8 @@ export function SermonNotes({ slug }: { slug: string }) {
   const [copied, setCopied] = useState(false)
   const saveTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
   const savedTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
+  // Текст, ещё не записанный в localStorage (ждёт окончания паузы в наборе)
+  const pending = useRef<Pending>(null)
   const dialogRef = useRef<HTMLDialogElement>(null)
 
   useEffect(() => {
@@ -29,25 +59,30 @@ export function SermonNotes({ slug }: { slug: string }) {
     }
     setLoaded(true)
     dialogRef.current?.close()
+    // При смене slug (переход между проповедями) сохраняем заметку предыдущей
+    return () => flushPending(pending, saveTimer)
   }, [slug])
 
   useEffect(() => {
+    // pagehide срабатывает и на мобильных при сворачивании/закрытии вкладки
+    const onPageHide = () => flushPending(pending, saveTimer)
+    const savedTimerRef = savedTimer
+    window.addEventListener('pagehide', onPageHide)
     return () => {
-      clearTimeout(saveTimer.current)
-      clearTimeout(savedTimer.current)
+      window.removeEventListener('pagehide', onPageHide)
+      flushPending(pending, saveTimer)
+      clearTimeout(savedTimerRef.current)
     }
   }, [])
 
   const onChange = (value: string) => {
     setText(value)
+    pending.current = { slug, value }
     clearTimeout(saveTimer.current)
     saveTimer.current = setTimeout(() => {
+      pending.current = null
       try {
-        if (value.trim()) {
-          localStorage.setItem(storageKey(slug), value)
-        } else {
-          localStorage.removeItem(storageKey(slug))
-        }
+        persist(slug, value)
         setSaved(true)
         clearTimeout(savedTimer.current)
         savedTimer.current = setTimeout(() => setSaved(false), 2000)
@@ -94,6 +129,7 @@ export function SermonNotes({ slug }: { slug: string }) {
   const confirmClear = () => {
     closeModal()
     clearTimeout(saveTimer.current)
+    pending.current = null
     setText('')
     setSaved(false)
     try {

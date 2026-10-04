@@ -1,8 +1,12 @@
 'use client'
 
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useTranslations } from 'next-intl'
+import { useEffect, useRef, useState } from 'react'
 
 import { BIBLE_BOOKS } from '@/data/bible/books'
+import { Link } from '@/i18n/navigation'
+
+import { chapterHref } from './BibleReader'
 
 interface BibleBookSelectorProps {
   currentBookSlug: string
@@ -12,49 +16,49 @@ interface BibleBookSelectorProps {
   onSelectChapter: (bookSlug: string, chapter: number) => void
 }
 
-export function BibleBookSelector({
+export function BibleBookSelector({ isOpen, ...props }: BibleBookSelectorProps) {
+  // Содержимое монтируется заново при каждом открытии: поиск пуст,
+  // завет — как у текущей книги, без сброса состояния в эффектах
+  if (!isOpen) return null
+  return <BookSelectorDialog {...props} />
+}
+
+function BookSelectorDialog({
   currentBookSlug,
   currentChapter,
-  isOpen,
   onClose,
   onSelectChapter,
-}: BibleBookSelectorProps) {
-  const [testament, setTestament] = useState<'old' | 'new'>('old')
+}: Omit<BibleBookSelectorProps, 'isOpen'>) {
+  const t = useTranslations('bible.selector')
+  const [testament, setTestament] = useState<'old' | 'new'>(
+    () => BIBLE_BOOKS.find((b) => b.slug === currentBookSlug)?.testament ?? 'old',
+  )
   const [search, setSearch] = useState('')
-  const listRef = useRef<HTMLDivElement | null>(null)
   const currentBookRef = useRef<HTMLDivElement | null>(null)
   const searchInputRef = useRef<HTMLInputElement | null>(null)
 
-  // Определяем завет текущей книги при открытии и авто-скролл
+  // Авто-скролл к текущей книге и фокус на поиске после открытия
   useEffect(() => {
-    if (!isOpen) return
-    setSearch('')
-    const currentBook = BIBLE_BOOKS.find((b) => b.slug === currentBookSlug)
-    if (currentBook) {
-      setTestament(currentBook.testament)
-    }
-    // Авто-скролл к текущей книге после рендера
-    const timer = setTimeout(() => {
+    const scrollTimer = setTimeout(() => {
       currentBookRef.current?.scrollIntoView({ block: 'center', behavior: 'smooth' })
     }, 200)
-    return () => clearTimeout(timer)
-  }, [isOpen, currentBookSlug])
-
-  // Фокус на поле поиска при открытии
-  useEffect(() => {
-    if (!isOpen) return
-    const timer = setTimeout(() => {
-      searchInputRef.current?.focus()
+    const focusTimer = setTimeout(() => {
+      searchInputRef.current?.focus({ preventScroll: true })
     }, 250)
-    return () => clearTimeout(timer)
-  }, [isOpen])
+    return () => {
+      clearTimeout(scrollTimer)
+      clearTimeout(focusTimer)
+    }
+  }, [])
 
-  const handleClose = useCallback(() => {
-    setSearch('')
-    onClose()
+  // Закрытие по Escape
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose()
+    }
+    document.addEventListener('keydown', onKeyDown)
+    return () => document.removeEventListener('keydown', onKeyDown)
   }, [onClose])
-
-  if (!isOpen) return null
 
   const normalizedSearch = search.toLowerCase().trim()
   const isSearching = normalizedSearch.length > 0
@@ -73,25 +77,24 @@ export function BibleBookSelector({
       {/* Затемнение */}
       <div
         className="fixed inset-0 bg-ink/40 backdrop-blur-xs transition-opacity"
-        onClick={handleClose}
+        onClick={onClose}
         aria-hidden="true"
       />
 
-      {/* Модальное окно выбора книги и главы */}
       <div
         role="dialog"
         aria-modal="true"
-        aria-label="Выбор книги и главы Библии"
+        aria-label={t('dialog')}
         className="relative z-50 w-full max-w-lg max-h-[85vh] flex flex-col rounded-3xl border border-ink/15 bg-paper p-5 sm:p-6 shadow-2xl animate-in zoom-in-95 duration-200"
       >
         <div className="flex items-center justify-between pb-3 border-b border-ink/10">
           <h2 className="font-heading text-xl font-bold uppercase tracking-wide text-ink">
-            Книги Библии
+            {t('title')}
           </h2>
           <button
             type="button"
-            onClick={handleClose}
-            aria-label="Закрыть выбор книги"
+            onClick={onClose}
+            aria-label={t('close')}
             className="flex h-9 w-9 items-center justify-center rounded-full text-ink hover:bg-ice transition-colors"
           >
             <span className="text-xl leading-none">✕</span>
@@ -114,10 +117,11 @@ export function BibleBookSelector({
           </svg>
           <input
             ref={searchInputRef}
-            type="text"
+            type="search"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Найти книгу… (Мф, Бытие, 1Кор)"
+            placeholder={t('search')}
+            aria-label={t('search')}
             className="w-full rounded-xl border border-ink/15 bg-white py-2.5 pl-9 pr-3 text-sm text-ink placeholder:text-ink-soft/60 focus:outline-none focus:ring-2 focus:ring-blue-dark/40 focus:border-blue-dark/40 transition-colors"
           />
           {search ? (
@@ -125,7 +129,7 @@ export function BibleBookSelector({
               type="button"
               onClick={() => setSearch('')}
               className="absolute right-2.5 top-1/2 -translate-y-1/2 text-ink-soft hover:text-ink text-sm px-1"
-              aria-label="Очистить поиск"
+              aria-label={t('clearSearch')}
             >
               ✕
             </button>
@@ -135,36 +139,27 @@ export function BibleBookSelector({
         {/* Переключатель Ветхий / Новый Завет (скрыт при поиске) */}
         {!isSearching ? (
           <div className="mt-3 flex rounded-xl border border-ink/10 bg-sand/40 p-1">
-            <button
-              type="button"
-              onClick={() => setTestament('old')}
-              className={`flex-1 rounded-lg py-2 font-heading text-sm font-semibold uppercase tracking-wider transition-colors ${
-                testament === 'old'
-                  ? 'bg-blue-dark text-white shadow-xs'
-                  : 'text-ink hover:text-blue-dark'
-              }`}
-            >
-              Ветхий Завет
-            </button>
-            <button
-              type="button"
-              onClick={() => setTestament('new')}
-              className={`flex-1 rounded-lg py-2 font-heading text-sm font-semibold uppercase tracking-wider transition-colors ${
-                testament === 'new'
-                  ? 'bg-blue-dark text-white shadow-xs'
-                  : 'text-ink hover:text-blue-dark'
-              }`}
-            >
-              Новый Завет
-            </button>
+            {(['old', 'new'] as const).map((key) => (
+              <button
+                key={key}
+                type="button"
+                onClick={() => setTestament(key)}
+                aria-pressed={testament === key}
+                className={`flex-1 rounded-lg py-2 font-heading text-sm font-semibold uppercase tracking-wider transition-colors ${
+                  testament === key ? 'bg-blue-dark text-white shadow-xs' : 'text-ink hover:text-blue-dark'
+                }`}
+              >
+                {t(key)}
+              </button>
+            ))}
           </div>
         ) : null}
 
         {/* Список книг */}
-        <div ref={listRef} className="mt-3 flex-1 overflow-y-auto space-y-2 pr-1">
+        <div className="mt-3 flex-1 overflow-y-auto space-y-2 pr-1">
           {filteredBooks.length === 0 ? (
             <div className="py-8 text-center text-sm text-ink-soft">
-              Ничего не найдено по запросу «{search}»
+              {t('notFound', { query: search })}
             </div>
           ) : null}
           {filteredBooks.map((book) => {
@@ -175,23 +170,19 @@ export function BibleBookSelector({
                 key={book.slug}
                 ref={isCurrent ? currentBookRef : undefined}
                 className={`rounded-2xl border p-3 transition-colors ${
-                  isCurrent
-                    ? 'border-blue-dark bg-ice/50'
-                    : 'border-ink/10 bg-white hover:border-blue-dark/50'
+                  isCurrent ? 'border-blue-dark bg-ice/50' : 'border-ink/10 bg-white hover:border-blue-dark/50'
                 }`}
               >
                 <div className="flex items-center gap-2">
-                  <span className="font-heading text-base font-bold text-ink">
-                    {book.name}
-                  </span>
+                  <span className="font-heading text-base font-bold text-ink">{book.name}</span>
                   <span className="text-xs text-ink-soft">({book.shortName})</span>
                   {isSearching ? (
                     <span className="text-[10px] uppercase font-heading font-semibold text-ink-soft">
-                      {book.testament === 'old' ? 'ВЗ' : 'НЗ'}
+                      {book.testament === 'old' ? t('oldShort') : t('newShort')}
                     </span>
                   ) : null}
                   <span className="ml-auto text-xs text-ink-soft">
-                    {book.chaptersCount} {book.chaptersCount === 1 ? 'глава' : book.chaptersCount < 5 ? 'главы' : 'глав'}
+                    {t('chapters', { count: book.chaptersCount })}
                   </span>
                 </div>
 
@@ -201,12 +192,18 @@ export function BibleBookSelector({
                     const chapSelected = isCurrent && currentChapter === chap
 
                     return (
-                      <button
+                      <Link
                         key={chap}
-                        type="button"
-                        onClick={() => {
+                        href={chapterHref(book.slug, chap)}
+                        prefetch={false}
+                        aria-current={chapSelected ? 'page' : undefined}
+                        onClick={(e) => {
+                          // Обычный клик — переход через роутер с закрытием окна;
+                          // Ctrl/Cmd+клик по-прежнему открывает главу в новой вкладке
+                          if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return
+                          e.preventDefault()
                           onSelectChapter(book.slug, chap)
-                          handleClose()
+                          onClose()
                         }}
                         className={`flex h-9 w-9 items-center justify-center rounded-xl font-heading text-sm font-bold transition-colors ${
                           chapSelected
@@ -215,7 +212,7 @@ export function BibleBookSelector({
                         }`}
                       >
                         {chap}
-                      </button>
+                      </Link>
                     )
                   })}
                 </div>
