@@ -14,39 +14,47 @@
 // добирая поля продлением края самого файла — бумажная фактура продолжается
 // без видимого шва, плоской заливкой не выходит из-за диагональной подсветки
 // мокапа. Клиенты, режущие превью в квадрат, получают ровно знак.
+import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import sharp from 'sharp'
 
 const dirname = path.dirname(fileURLToPath(import.meta.url))
+const originalJpg = path.resolve(dirname, '../assets/og-original.jpg')
 const source = path.resolve(dirname, '../assets/logo-full.png')
 const target = path.resolve(dirname, '../public/og.jpg')
 
 const WIDTH = 1200
 const HEIGHT = 630
 
-// Замерено по исходнику 1024x1024: знак занимает x 137..864, y 170..723,
-// «ШЫНДЫҚ» — y 724..816, «ҚАУЫМ» — y 827..861. Режем по 821, в просвете
-// между строками, и оставляем поля по 20 пикселей вокруг знака.
-const CROP = { left: 117, top: 150, width: 767, height: 671 }
+if (fs.existsSync(originalJpg)) {
+  await sharp(originalJpg)
+    .resize(WIDTH, HEIGHT, { fit: 'cover', position: 'centre' })
+    .jpeg({ quality: 90, mozjpeg: true })
+    .toFile(target)
+} else {
+  // Замерено по исходнику 1024x1024
+  const CROP = { left: 117, top: 150, width: 767, height: 671 }
 
-const cropped = await sharp(source).extract(CROP).resize({ width: HEIGHT }).toBuffer()
-const { height: croppedHeight } = await sharp(cropped).metadata()
+  const cropped = await sharp(source).extract(CROP).resize({ width: HEIGHT }).toBuffer()
+  const { height: croppedHeight } = await sharp(cropped).metadata()
 
-const padTop = Math.floor((HEIGHT - croppedHeight) / 2)
-const square = await sharp(cropped)
-  .extend({ top: padTop, bottom: HEIGHT - croppedHeight - padTop, extendWith: 'copy' })
-  .toBuffer()
+  const padTop = Math.floor((HEIGHT - croppedHeight) / 2)
+  const square = await sharp(cropped)
+    .extend({ top: padTop, bottom: HEIGHT - croppedHeight - padTop, extendWith: 'copy' })
+    .toBuffer()
 
-const sides = (WIDTH - HEIGHT) / 2
-const background = await sharp(square)
-  .extend({ left: sides, right: sides, extendWith: 'copy' })
-  .blur(10)
-  .toBuffer()
+  const sides = (WIDTH - HEIGHT) / 2
+  const background = await sharp(square)
+    .extend({ left: sides, right: sides, extendWith: 'copy' })
+    .blur(10)
+    .toBuffer()
 
-await sharp(background)
-  .composite([{ input: square, gravity: 'centre' }])
-  .jpeg({ quality: 92, mozjpeg: true })
-  .toFile(target)
+  await sharp(background)
+    .composite([{ input: square, gravity: 'centre' }])
+    .jpeg({ quality: 92, mozjpeg: true })
+    .toFile(target)
+}
 
 console.log(`Готово: ${path.relative(process.cwd(), target)} — ${WIDTH}x${HEIGHT}`)
+
