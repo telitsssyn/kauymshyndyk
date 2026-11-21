@@ -27,6 +27,11 @@ export const getAboutPage = cache(async () => {
   return payload.findGlobal({ slug: 'about-page', depth: 1 })
 })
 
+export const getYouthPage = cache(async () => {
+  const payload = await getPayloadClient()
+  return payload.findGlobal({ slug: 'youth-page', depth: 1 })
+})
+
 export const getDonatePage = cache(async () => {
   const payload = await getPayloadClient()
   return payload.findGlobal({ slug: 'donate-page', depth: 1 })
@@ -94,4 +99,57 @@ export const getGallery = cache(async () => {
     depth: 1,
   })
   return result.docs
+})
+
+// ── Курсы ──
+// У уроков есть черновики: на сайт попадают только опубликованные.
+const PUBLISHED = { _status: { equals: 'published' } } as const
+
+export const getCourses = cache(async () => {
+  const payload = await getPayloadClient()
+  const result = await payload.find({
+    collection: 'courses',
+    sort: 'createdAt',
+    limit: 100,
+    depth: 1,
+  })
+  return result.docs
+})
+
+export const getCourseBySlug = cache(async (slug: string) => {
+  const payload = await getPayloadClient()
+  const result = await payload.find({
+    collection: 'courses',
+    where: { slug: { equals: slug } },
+    limit: 1,
+    depth: 1,
+  })
+  return result.docs[0] ?? null
+})
+
+// Список уроков курса без текста — для оглавления и кнопок «назад / вперёд»
+export const getCourseLessons = cache(async (courseId: number) => {
+  const payload = await getPayloadClient()
+  const result = await payload.find({
+    collection: 'lessons',
+    where: { and: [{ course: { equals: courseId } }, PUBLISHED] },
+    sort: 'number',
+    limit: 200,
+    depth: 0,
+    select: { number: true, title: true, subtitle: true, youtubeUrl: true },
+  })
+  return result.docs
+})
+
+export const getLesson = cache(async (courseId: number, number: number) => {
+  const payload = await getPayloadClient()
+  const result = await payload.find({
+    collection: 'lessons',
+    where: {
+      and: [{ course: { equals: courseId } }, { number: { equals: number } }, PUBLISHED],
+    },
+    limit: 1,
+    depth: 1,
+  })
+  return result.docs[0] ?? null
 })

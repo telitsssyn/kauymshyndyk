@@ -9,6 +9,7 @@ import { SocialLinks } from './SocialLinks'
 const NAV_ITEMS = [
   { href: '/first-time', key: 'firstTime' },
   { href: '/schedule', key: 'schedule' },
+  { href: '/youth', key: 'youth' },
   { href: '/sermons', key: 'sermons' },
   { href: '/bible', key: 'bible' },
   { href: '/courses', key: 'courses' },

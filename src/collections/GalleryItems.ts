@@ -1,6 +1,6 @@
 import type { CollectionConfig } from 'payload'
 
-import { revalidateSite } from '@/lib/revalidate'
+import { revalidateContent } from '@/lib/revalidate'
 
 export const GalleryItems: CollectionConfig = {
   slug: 'gallery',
@@ -34,7 +34,7 @@ export const GalleryItems: CollectionConfig = {
     },
   ],
   hooks: {
-    afterChange: [() => revalidateSite()],
-    afterDelete: [() => revalidateSite()],
+    afterChange: [() => revalidateContent()],
+    afterDelete: [() => revalidateContent()],
   },
 }

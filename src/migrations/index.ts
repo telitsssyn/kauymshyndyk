@@ -7,6 +7,9 @@ import * as migration_20260719_172155_add_user_roles from './20260719_172155_add
 import * as migration_20260719_191051_drop_kaspi_requisites from './20260719_191051_drop_kaspi_requisites';
 import * as migration_20260719_191110_donate_halyk_qr from './20260719_191110_donate_halyk_qr';
 import * as migration_20260809_111537_drop_ministries from './20260809_111537_drop_ministries';
+import * as migration_20261110_135900_drop_default_og_image from './20261110_135900_drop_default_og_image';
+import * as migration_20261110_154144_add_youth_page from './20261110_154144_add_youth_page';
+import * as migration_20261119_073238_add_courses from './20261119_073238_add_courses';
 
 export const migrations = [
   {
@@ -52,6 +55,21 @@ export const migrations = [
   {
     up: migration_20260809_111537_drop_ministries.up,
     down: migration_20260809_111537_drop_ministries.down,
-    name: '20260809_111537_drop_ministries'
+    name: '20260809_111537_drop_ministries',
+  },
+  {
+    up: migration_20261110_135900_drop_default_og_image.up,
+    down: migration_20261110_135900_drop_default_og_image.down,
+    name: '20261110_135900_drop_default_og_image',
+  },
+  {
+    up: migration_20261110_154144_add_youth_page.up,
+    down: migration_20261110_154144_add_youth_page.down,
+    name: '20261110_154144_add_youth_page',
+  },
+  {
+    up: migration_20261119_073238_add_courses.up,
+    down: migration_20261119_073238_add_courses.down,
+    name: '20261119_073238_add_courses'
   },
 ];

@@ -1,6 +1,6 @@
 import type { GlobalConfig } from 'payload'
 
-import { revalidateSite } from '@/lib/revalidate'
+import { revalidateContent } from '@/lib/revalidate'
 
 export const DonatePage: GlobalConfig = {
   slug: 'donate-page',
@@ -79,6 +79,6 @@ export const DonatePage: GlobalConfig = {
     },
   ],
   hooks: {
-    afterChange: [() => revalidateSite()],
+    afterChange: [() => revalidateContent()],
   },
 }

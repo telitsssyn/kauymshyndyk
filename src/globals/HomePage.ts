@@ -1,6 +1,6 @@
 import type { GlobalConfig } from 'payload'
 
-import { revalidateSite } from '@/lib/revalidate'
+import { revalidateContent } from '@/lib/revalidate'
 
 export const HomePage: GlobalConfig = {
   slug: 'home-page',
@@ -50,6 +50,6 @@ export const HomePage: GlobalConfig = {
     },
   ],
   hooks: {
-    afterChange: [() => revalidateSite()],
+    afterChange: [() => revalidateContent()],
   },
 }

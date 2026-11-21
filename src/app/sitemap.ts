@@ -3,12 +3,13 @@ import type { MetadataRoute } from 'next'
 import { BIBLE_BOOKS } from '@/data/bible/books'
 import { getPathname } from '@/i18n/navigation'
 import { routing } from '@/i18n/routing'
-import { getNewsList, getSermonsList } from '@/lib/queries'
+import { getCourseLessons, getCourses, getNewsList, getSermonsList } from '@/lib/queries'
 
 const STATIC_PATHS = [
   '/',
   '/first-time',
   '/schedule',
+  '/youth',
   '/sermons',
   '/about',
   '/bible',
@@ -76,6 +77,38 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
             }),
           lastModified: new Date(sermon.updatedAt),
         })
+      }
+    }
+
+    // Курсы и их опубликованные уроки
+    const courses = await getCourses()
+    for (const course of courses) {
+      if (!course.slug) continue
+      const lessons = await getCourseLessons(course.id)
+      if (lessons.length === 0) continue
+      for (const locale of routing.locales) {
+        entries.push({
+          url:
+            base +
+            getPathname({
+              locale,
+              href: { pathname: '/courses/[course]', params: { course: course.slug } },
+            }),
+          lastModified: new Date(course.updatedAt),
+        })
+        for (const lesson of lessons) {
+          entries.push({
+            url:
+              base +
+              getPathname({
+                locale,
+                href: {
+                  pathname: '/courses/[course]/[lesson]',
+                  params: { course: course.slug, lesson: String(lesson.number) },
+                },
+              }),
+          })
+        }
       }
     }
   } catch {

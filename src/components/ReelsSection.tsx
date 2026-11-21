@@ -5,18 +5,20 @@ import { useEffect, useRef, useState } from 'react'
 import { Arrow } from '@/components/Arrow'
 import { BrushHeading } from '@/components/BrushHeading'
 
-interface ReelItem {
+export interface ReelItem {
   id: number
   videoSrc: string
   posterSrc?: string
 }
 
-const REELS: ReelItem[] = [
-  { id: 1, videoSrc: '/reels/reel-1.mp4' },
-  { id: 2, videoSrc: '/reels/reel-2.mp4' },
-  { id: 3, videoSrc: '/reels/reel-3.mp4' },
-  { id: 4, videoSrc: '/reels/reel-4.mp4' },
-]
+// Обложка показывается сразу, а само видео (3–6 МБ) браузер начинает качать,
+// только когда карточка попала на экран, — см. preload="none" и IntersectionObserver ниже.
+// Как подготовить файлы — в public/reels/README.md.
+const HOME_REELS: ReelItem[] = [1, 2, 3, 4].map((id) => ({
+  id,
+  videoSrc: `/reels/reel-${id}.mp4`,
+  posterSrc: `/reels/reel-${id}.jpg`,
+}))
 
 function formatTime(seconds: number): string {
   if (isNaN(seconds) || seconds < 0) return '0:00'
@@ -253,7 +255,7 @@ function ReelCard({ reel, isActive = true }: { reel: ReelItem; isActive?: boolea
             ref={videoRef}
             src={reel.videoSrc}
             poster={reel.posterSrc}
-            preload="metadata"
+            preload="none"
             playsInline
             loop
             muted={isMuted}
@@ -469,6 +471,8 @@ interface ReelsSectionProps {
   title?: string
   subtitle?: string
   ctaText?: string
+  /** Свой набор видео для страницы; без него показываются рилсы главной */
+  reels?: ReelItem[]
 }
 
 export function ReelsSection({
@@ -476,6 +480,7 @@ export function ReelsSection({
   title = 'Жизнь церкви в видео',
   subtitle = 'Короткие видео, моменты богослужений и вдохновляющие мысли из нашего Instagram',
   ctaText = 'Перейти в Instagram',
+  reels = HOME_REELS,
 }: ReelsSectionProps) {
   const targetUrl = instagramUrl || 'https://www.instagram.com/kauymshyndyk'
 
@@ -495,7 +500,7 @@ export function ReelsSection({
   const scrollToSlide = (index: number) => {
     const slider = sliderRef.current
     if (!slider) return
-    const targetIndex = Math.max(0, Math.min(REELS.length - 1, index))
+    const targetIndex = Math.max(0, Math.min(reels.length - 1, index))
     const item = slider.children[targetIndex] as HTMLElement | undefined
     if (item) {
       const scrollLeft = item.offsetLeft - (slider.clientWidth - item.clientWidth) / 2
@@ -585,10 +590,10 @@ export function ReelsSection({
           <button
             type="button"
             onClick={nextSlide}
-            disabled={activeIndex === REELS.length - 1}
+            disabled={activeIndex === reels.length - 1}
             aria-label="Следующее видео"
             className={`sm:hidden absolute right-0 top-1/2 -translate-y-1/2 z-30 flex h-10 w-10 items-center justify-center rounded-full bg-ink/75 text-white backdrop-blur-md shadow-lg transition-all duration-200 active:scale-95 ${
-              activeIndex === REELS.length - 1 ? 'opacity-0 pointer-events-none' : 'opacity-100 hover:bg-ink'
+              activeIndex === reels.length - 1 ? 'opacity-0 pointer-events-none' : 'opacity-100 hover:bg-ink'
             }`}
           >
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5 -mr-0.5">
@@ -602,7 +607,7 @@ export function ReelsSection({
             onScroll={handleScroll}
             className="flex gap-4 overflow-x-auto snap-x snap-mandatory scroll-smooth pb-2 pt-1 px-8 -mx-4 sm:mx-0 sm:px-0 sm:pb-0 sm:pt-0 sm:grid sm:grid-cols-2 lg:grid-cols-4 sm:gap-6 sm:overflow-visible [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
           >
-            {REELS.map((reel, index) => (
+            {reels.map((reel, index) => (
               <div
                 key={reel.id}
                 className="w-[78vw] max-w-[300px] shrink-0 snap-center sm:w-auto sm:max-w-none sm:shrink"
@@ -632,7 +637,7 @@ export function ReelsSection({
             {/* Точки-индикаторы и счетчик видео */}
             <div className="flex flex-col items-center gap-1.5">
               <div className="flex items-center gap-1.5">
-                {REELS.map((_, i) => (
+                {reels.map((_, i) => (
                   <button
                     key={i}
                     type="button"
@@ -645,7 +650,7 @@ export function ReelsSection({
                 ))}
               </div>
               <span className="text-xs font-medium text-ink-soft select-none">
-                {activeIndex + 1} из {REELS.length}
+                {activeIndex + 1} из {reels.length}
               </span>
             </div>
 
@@ -653,10 +658,10 @@ export function ReelsSection({
             <button
               type="button"
               onClick={nextSlide}
-              disabled={activeIndex === REELS.length - 1}
+              disabled={activeIndex === reels.length - 1}
               aria-label="Следующее видео"
               className={`flex h-11 w-11 items-center justify-center rounded-full border border-ink/15 bg-white text-ink shadow-sm transition-all duration-150 active:scale-95 ${
-                activeIndex === REELS.length - 1 ? 'opacity-30 cursor-not-allowed' : 'hover:bg-ice hover:text-blue-dark active:bg-ice cursor-pointer'
+                activeIndex === reels.length - 1 ? 'opacity-30 cursor-not-allowed' : 'hover:bg-ice hover:text-blue-dark active:bg-ice cursor-pointer'
               }`}
             >
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5">

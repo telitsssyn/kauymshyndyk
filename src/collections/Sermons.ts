@@ -1,6 +1,6 @@
 import type { CollectionConfig } from 'payload'
 
-import { revalidateSite } from '@/lib/revalidate'
+import { revalidateContent } from '@/lib/revalidate'
 import { formatSlugHook } from '@/lib/slug'
 
 export const Sermons: CollectionConfig = {
@@ -108,7 +108,7 @@ export const Sermons: CollectionConfig = {
     },
   ],
   hooks: {
-    afterChange: [() => revalidateSite()],
-    afterDelete: [() => revalidateSite()],
+    afterChange: [() => revalidateContent()],
+    afterDelete: [() => revalidateContent()],
   },
 }

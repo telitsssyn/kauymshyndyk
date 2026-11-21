@@ -270,6 +270,16 @@ export function Header({ churchName }: { churchName: string }) {
             ) : null}
           </div>
 
+          {/* Молодёжь */}
+          <Link
+            href="/youth"
+            className={`rounded-lg px-2.5 py-2 font-heading text-sm font-semibold uppercase tracking-wide transition-colors hover:bg-ice xl:px-3 xl:text-base xl:tracking-wider ${
+              isPathActive('/youth') ? 'text-blue-dark' : 'text-ink'
+            }`}
+          >
+            {t('youth')}
+          </Link>
+
           {/* Новости */}
           <Link
             href="/news"
@@ -384,6 +394,17 @@ export function Header({ churchName }: { churchName: string }) {
                 ))}
               </div>
             </div>
+
+            {/* Молодёжь */}
+            <Link
+              href="/youth"
+              onClick={closeMenu}
+              className={`rounded-xl px-3 py-2 font-heading text-base font-semibold uppercase tracking-wide transition-colors hover:bg-ice ${
+                isPathActive('/youth') ? 'bg-ice/60 text-blue-dark' : 'text-ink'
+              }`}
+            >
+              {t('youth')}
+            </Link>
 
             {/* Новости */}
             <Link

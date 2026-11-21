@@ -9,7 +9,7 @@ import { BrushHeading } from '@/components/BrushHeading'
 import { loadBibleChapterText } from '@/data/bible/server'
 import { buildMetadata } from '@/lib/metadata'
 
-export const revalidate = 86400
+export const revalidate = false
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations('bible')

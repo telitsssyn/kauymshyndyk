@@ -8,10 +8,12 @@ import { BIBLE_BOOKS } from '@/data/bible/books'
 import { loadBibleChapterText, resolveBibleChapter } from '@/data/bible/server'
 import { buildMetadata } from '@/lib/metadata'
 
-export const revalidate = 86400
+export const revalidate = false
 
 // Все 1189 глав собираются заранее — каждая получает собственный адрес и
-// попадает в поисковую выдачу. Тексты не меняются, поэтому кэш живёт сутки.
+// попадает в поисковую выдачу. Тексты не меняются, поэтому кэш бессрочный:
+// страница пересобирается только при смене настроек сайта (шапка, подвал),
+// см. lib/revalidate.ts.
 export function generateStaticParams() {
   return BIBLE_BOOKS.flatMap((book) =>
     Array.from({ length: book.chaptersCount }, (_, i) => ({

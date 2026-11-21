@@ -54,3 +54,7 @@ node_modules/
 
 .vercel
 .env*
+
+# Исходники курсов (Word) — только локально
+content/courses/**/*.docx
+content/courses/**/*.doc

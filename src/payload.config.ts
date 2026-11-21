@@ -7,8 +7,10 @@ import { buildConfig } from 'payload'
 import { fileURLToPath } from 'url'
 import sharp from 'sharp'
 
+import { Courses } from './collections/Courses'
 import { GalleryItems } from './collections/GalleryItems'
 import { Media } from './collections/Media'
+import { Lessons } from './collections/Lessons'
 import { Ministers } from './collections/Ministers'
 import { News } from './collections/News'
 import { Sermons } from './collections/Sermons'
@@ -19,6 +21,7 @@ import { FirstVisit } from './globals/FirstVisit'
 import { HomePage } from './globals/HomePage'
 import { Schedule } from './globals/Schedule'
 import { Settings } from './globals/Settings'
+import { YouthPage } from './globals/YouthPage'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -33,8 +36,8 @@ export default buildConfig({
       titleSuffix: ' • Админка',
     },
   },
-  collections: [News, Sermons, Ministers, GalleryItems, Media, Users],
-  globals: [HomePage, Schedule, FirstVisit, AboutPage, DonatePage, Settings],
+  collections: [News, Sermons, Courses, Lessons, Ministers, GalleryItems, Media, Users],
+  globals: [HomePage, Schedule, FirstVisit, AboutPage, YouthPage, DonatePage, Settings],
   editor: lexicalEditor(),
   // Язык интерфейса админки
   i18n: {
@@ -53,6 +56,10 @@ export default buildConfig({
   db: postgresAdapter({
     pool: {
       connectionString: process.env.DATABASE_URL || '',
+      // Сборка гоняет ~11 воркеров, у каждого свой пул: при стандартных 10
+      // соединениях на пул локальная база (max_connections 100) отвечает
+      // «too many clients»
+      max: 5,
     },
   }),
   sharp,

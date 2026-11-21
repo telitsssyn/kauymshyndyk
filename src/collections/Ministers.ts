@@ -1,6 +1,6 @@
 import type { CollectionConfig } from 'payload'
 
-import { revalidateSite } from '@/lib/revalidate'
+import { revalidateContent } from '@/lib/revalidate'
 
 export const Ministers: CollectionConfig = {
   slug: 'ministers',
@@ -48,7 +48,7 @@ export const Ministers: CollectionConfig = {
     },
   ],
   hooks: {
-    afterChange: [() => revalidateSite()],
-    afterDelete: [() => revalidateSite()],
+    afterChange: [() => revalidateContent()],
+    afterDelete: [() => revalidateContent()],
   },
 }

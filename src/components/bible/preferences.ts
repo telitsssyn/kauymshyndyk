@@ -14,7 +14,7 @@ const CHANGE_EVENT = 'bible-prefs-change'
 const KEYS = {
   translation: 'bible-translation',
   fontSize: 'bible-font-size',
-  hintHidden: 'bible-hint-hidden',
+  mode: 'bible-mode',
   progress: 'bible-reading-progress',
 } as const
 
@@ -71,11 +71,13 @@ export function useFontSizePref(): [FontSize, (value: FontSize) => void] {
   return [value, (next) => write(KEYS.fontSize, next)]
 }
 
-// ── Подсказка «нажмите на стих» ──────────────────────────
+// ── Режим: только текст или текст с толкованием ─────────
 
-export function useHintHidden(): [boolean, () => void] {
-  const hidden = useStored(KEYS.hintHidden) === '1'
-  return [hidden, () => write(KEYS.hintHidden, '1')]
+export type ReaderMode = 'text' | 'commentary'
+
+export function useReaderModePref(): [ReaderMode, (value: ReaderMode) => void] {
+  const value: ReaderMode = useStored(KEYS.mode) === 'commentary' ? 'commentary' : 'text'
+  return [value, (next) => write(KEYS.mode, next === 'commentary' ? next : null)]
 }
 
 // ── Место, где человек остановился ───────────────────────

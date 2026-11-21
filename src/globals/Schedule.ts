@@ -1,6 +1,6 @@
 import type { GlobalConfig } from 'payload'
 
-import { revalidateSite } from '@/lib/revalidate'
+import { revalidateContent } from '@/lib/revalidate'
 
 const timeField = {
   name: 'time',
@@ -123,6 +123,6 @@ export const Schedule: GlobalConfig = {
     },
   ],
   hooks: {
-    afterChange: [() => revalidateSite()],
+    afterChange: [() => revalidateContent()],
   },
 }

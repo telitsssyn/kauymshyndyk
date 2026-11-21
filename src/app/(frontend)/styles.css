@@ -101,4 +101,27 @@
   .prose-church img {
     @apply rounded-2xl;
   }
+
+  /* Таблицы из редактора (уроки курсов): на телефоне прокручиваются вбок,
+     а не растягивают страницу */
+  .prose-church .lexical-table-container {
+    @apply -mx-4 overflow-x-auto px-4 sm:mx-0 sm:px-0;
+  }
+
+  .prose-church table {
+    @apply w-full min-w-[32rem] bg-white text-base leading-snug;
+  }
+
+  .prose-church th {
+    @apply bg-ice text-left align-bottom font-semibold;
+  }
+
+  .prose-church td {
+    @apply align-top;
+  }
+
+  .prose-church td p,
+  .prose-church th p {
+    @apply m-0;
+  }
 }

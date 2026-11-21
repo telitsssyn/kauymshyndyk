@@ -69,6 +69,8 @@ export interface Config {
   collections: {
     news: News;
     sermons: Sermon;
+    courses: Course;
+    lessons: Lesson;
     ministers: Minister;
     gallery: Gallery;
     media: Media;
@@ -82,6 +84,8 @@ export interface Config {
   collectionsSelect: {
     news: NewsSelect<false> | NewsSelect<true>;
     sermons: SermonsSelect<false> | SermonsSelect<true>;
+    courses: CoursesSelect<false> | CoursesSelect<true>;
+    lessons: LessonsSelect<false> | LessonsSelect<true>;
     ministers: MinistersSelect<false> | MinistersSelect<true>;
     gallery: GallerySelect<false> | GallerySelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
@@ -100,6 +104,7 @@ export interface Config {
     schedule: Schedule;
     'first-visit': FirstVisit;
     'about-page': AboutPage;
+    'youth-page': YouthPage;
     'donate-page': DonatePage;
     settings: Setting;
   };
@@ -108,6 +113,7 @@ export interface Config {
     schedule: ScheduleSelect<false> | ScheduleSelect<true>;
     'first-visit': FirstVisitSelect<false> | FirstVisitSelect<true>;
     'about-page': AboutPageSelect<false> | AboutPageSelect<true>;
+    'youth-page': YouthPageSelect<false> | YouthPageSelect<true>;
     'donate-page': DonatePageSelect<false> | DonatePageSelect<true>;
     settings: SettingsSelect<false> | SettingsSelect<true>;
   };
@@ -279,6 +285,99 @@ export interface Sermon {
   createdAt: string;
 }
 /**
+ * Курс — это набор уроков. Сами уроки добавляются в разделе «Уроки», там же выбирается курс.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "courses".
+ */
+export interface Course {
+  id: number;
+  title: string;
+  /**
+   * Заполняется автоматически из названия. Менять не обязательно.
+   */
+  slug?: string | null;
+  /**
+   * 2–3 предложения: о чём курс и для кого. Показывается в карточке и на странице курса.
+   */
+  description?: string | null;
+  /**
+   * Необязательно. Горизонтальная картинка, лучше 16:9.
+   */
+  cover?: (number | null) | Media;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Урок можно сохранять как черновик и дописывать постепенно — на сайте он появится, когда нажмёте «Опубликовать».
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "lessons".
+ */
+export interface Lesson {
+  id: number;
+  course: number | Course;
+  /**
+   * Как в названии файла: 0 — введение, дальше 1, 2, 3…
+   */
+  number: number;
+  /**
+   * Коротко, одним-двумя словами: «Грех», «Любовь Бога».
+   */
+  title: string;
+  /**
+   * Вторая часть заголовка: «Что ломает отношения».
+   */
+  subtitle?: string | null;
+  /**
+   * Видео показывается вверху урока. Можно оставить пустой, пока записи нет, — тогда загрузите картинку ниже.
+   */
+  youtubeUrl?: string | null;
+  /**
+   * Показывается вместо видео, пока не заполнена ссылка на YouTube. Когда вставите ссылку — сайт сам переключится на видео.
+   */
+  cover?: (number | null) | Media;
+  /**
+   * Подзаголовки разделов — «Заголовок 2». Цитаты из Библии вставляйте блоком «Цитата из Библии» (кнопка «+» или «/»).
+   */
+  content: {
+    root: {
+      type: string;
+      children: {
+        type: any;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  };
+  /**
+   * Показывается после текста урока в отдельной рамке. Удобно списком.
+   */
+  homework?: {
+    root: {
+      type: string;
+      children: {
+        type: any;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  } | null;
+  updatedAt: string;
+  createdAt: string;
+  _status?: ('draft' | 'published') | null;
+}
+/**
  * Команда церкви на странице «О церкви». Порядок можно менять перетаскиванием.
  *
  * This interface was referenced by `Config`'s JSON-Schema
@@ -390,6 +489,14 @@ export interface PayloadLockedDocument {
         value: number | Sermon;
       } | null)
     | ({
+        relationTo: 'courses';
+        value: number | Course;
+      } | null)
+    | ({
+        relationTo: 'lessons';
+        value: number | Lesson;
+      } | null)
+    | ({
         relationTo: 'ministers';
         value: number | Minister;
       } | null)
@@ -477,6 +584,35 @@ export interface SermonsSelect<T extends boolean = true> {
   description?: T;
   updatedAt?: T;
   createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "courses_select".
+ */
+export interface CoursesSelect<T extends boolean = true> {
+  title?: T;
+  slug?: T;
+  description?: T;
+  cover?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "lessons_select".
+ */
+export interface LessonsSelect<T extends boolean = true> {
+  course?: T;
+  number?: T;
+  title?: T;
+  subtitle?: T;
+  youtubeUrl?: T;
+  cover?: T;
+  content?: T;
+  homework?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  _status?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -775,6 +911,21 @@ export interface AboutPage {
   createdAt?: string | null;
 }
 /**
+ * Фотография в начале страницы молодёжного служения.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "youth-page".
+ */
+export interface YouthPage {
+  id: number;
+  /**
+   * Горизонтальное фото с молодёжной встречи — показывается справа от заголовка и обрезается до пропорции 4:3. Без фото первый блок будет только с текстом.
+   */
+  heroImage?: (number | null) | Media;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "donate-page".
  */
@@ -849,10 +1000,6 @@ export interface Setting {
    * Откройте 2gis.kz, найдите здание церкви, нажмите «Поделиться» → «Скопировать ссылку». Используется для кнопки «Как добраться».
    */
   mapLink?: string | null;
-  /**
-   * Показывается при отправке ссылки на сайт в мессенджерах, если у страницы нет своей обложки.
-   */
-  defaultOgImage?: (number | null) | Media;
   updatedAt?: string | null;
   createdAt?: string | null;
 }
@@ -934,6 +1081,16 @@ export interface AboutPageSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "youth-page_select".
+ */
+export interface YouthPageSelect<T extends boolean = true> {
+  heroImage?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "donate-page_select".
  */
 export interface DonatePageSelect<T extends boolean = true> {
@@ -966,7 +1123,6 @@ export interface SettingsSelect<T extends boolean = true> {
   youtube?: T;
   mapEmbedUrl?: T;
   mapLink?: T;
-  defaultOgImage?: T;
   updatedAt?: T;
   createdAt?: T;
   globalType?: T;

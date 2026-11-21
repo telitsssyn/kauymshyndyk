@@ -11,11 +11,23 @@ type Props = {
    * где человек специально открыл фото, чтобы рассмотреть детали.
    */
   full?: boolean
+  /**
+   * Без миниатюры 400×300: она обрезана до 4:3 и годится для карточек, а не
+   * для картинок в тексте, где у схемы срезались бы края.
+   */
+  uncropped?: boolean
 }
 
 // Отдаём размеры, сгенерированные Payload (webp), без оптимизатора Next —
 // чтобы не упираться в лимиты трансформаций на бесплатном тарифе Vercel.
-export function PayloadImage({ media, sizes = '100vw', className, priority, full }: Props) {
+export function PayloadImage({
+  media,
+  sizes = '100vw',
+  className,
+  priority,
+  full,
+  uncropped,
+}: Props) {
   if (!media || typeof media === 'number' || !media.url) return null
 
   if (full) {
@@ -40,7 +52,7 @@ export function PayloadImage({ media, sizes = '100vw', className, priority, full
 
   const entries: string[] = []
   const s = media.sizes
-  if (s?.thumbnail?.url && s.thumbnail.width) entries.push(`${s.thumbnail.url} ${s.thumbnail.width}w`)
+  if (!uncropped && s?.thumbnail?.url && s.thumbnail.width) entries.push(`${s.thumbnail.url} ${s.thumbnail.width}w`)
   if (s?.card?.url && s.card.width) entries.push(`${s.card.url} ${s.card.width}w`)
   if (s?.hero?.url && s.hero.width) entries.push(`${s.hero.url} ${s.hero.width}w`)
   if (media.width) entries.push(`${media.url} ${media.width}w`)

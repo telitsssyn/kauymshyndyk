@@ -1,5 +1,21 @@
 {
-  "npm.packageManager": "pnpm",
+  "npm.packageManager": "npm",
+  // Папки, которые постоянно переписываются (сборка Next, локальная база) или огромны
+  // и не редактируются руками (1189 глав Библии): следить за ними незачем,
+  // а слежка за десятками тысяч файлов нагружает процессор и диск.
+  "files.watcherExclude": {
+    "**/.next/**": true,
+    "**/.pgdata/**": true,
+    "**/media/**": true,
+    "**/public/bible/**": true,
+    "**/test-results/**": true,
+    "**/playwright-report/**": true
+  },
+  "search.exclude": {
+    "**/.next": true,
+    "**/.pgdata": true,
+    "public/bible": true
+  },
   "editor.defaultFormatter": "esbenp.prettier-vscode",
   "[typescript]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode",

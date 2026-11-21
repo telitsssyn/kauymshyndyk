@@ -2,7 +2,7 @@ import type { CollectionConfig } from 'payload'
 import path from 'path'
 import { fileURLToPath } from 'url'
 
-import { revalidateSite } from '@/lib/revalidate'
+import { revalidateContent } from '@/lib/revalidate'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -57,7 +57,7 @@ export const Media: CollectionConfig = {
     ],
   },
   hooks: {
-    afterChange: [() => revalidateSite()],
-    afterDelete: [() => revalidateSite()],
+    afterChange: [() => revalidateContent()],
+    afterDelete: [() => revalidateContent()],
   },
 }

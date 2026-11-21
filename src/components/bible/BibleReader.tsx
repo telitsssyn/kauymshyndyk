@@ -1,25 +1,34 @@
 'use client'
 
 import { useTranslations } from 'next-intl'
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 
 import { Arrow } from '@/components/Arrow'
 import { BIBLE_BOOKS } from '@/data/bible/books'
 import { fetchBibleChapter } from '@/data/bible'
 import {
   BIBLE_TRANSLATIONS,
+  COMMENTARY_AUTHORS,
   type BibleChapter,
   type BibleChapterText,
+  type TranslationKey,
 } from '@/data/bible/types'
 import { Link, useRouter } from '@/i18n/navigation'
 
 import { BibleBookSelector } from './BibleBookSelector'
-import { BibleBottomSheet, type CommentaryStatus } from './BibleBottomSheet'
+import {
+  BibleCommentary,
+  COMMENTARY_AUTHOR,
+  COMMENTARY_TRANSLATION,
+  type CommentaryStatus,
+} from './BibleCommentary'
 import {
   saveReadingProgress,
   useFontSizePref,
-  useHintHidden,
+  useReaderModePref,
   useTranslationPref,
+  type FontSize,
+  type ReaderMode,
 } from './preferences'
 
 type ChapterRef = { bookSlug: string; chapter: number; label: string }
@@ -49,6 +58,58 @@ function adjacentChapter(
     : { bookSlug: book.slug, chapter: book.chaptersCount, label: `${book.shortName} ${book.chaptersCount}` }
 }
 
+/** Где кончается закреплённая панель, когда она прилипла к шапке */
+function stuckPanelBottom(panel: HTMLElement | null): number {
+  if (!panel) return 130
+  return (parseFloat(getComputedStyle(panel).top) || 0) + panel.offsetHeight + 12
+}
+
+/** Первый стих, который виден под закреплённой панелью */
+function topVisibleVerse(offset: number): number | null {
+  for (const el of document.querySelectorAll<HTMLElement>('[data-verse]')) {
+    if (el.getBoundingClientRect().bottom > offset) return Number(el.dataset.verse)
+  }
+  return null
+}
+
+/**
+ * Мгновенный переход к стиху. Не scrollIntoView: на сайте включена плавная
+ * прокрутка, и повторный переход (после догрузки толкований) накладывался
+ * на ещё идущую анимацию.
+ */
+function jumpToVerse(verse: number, offset: number) {
+  const el = document.getElementById(`v${verse}`)
+  if (!el) return
+  const top = el.getBoundingClientRect().top + window.scrollY - offset
+  window.scrollTo({ top, behavior: 'instant' })
+}
+
+const FONT_SIZE_CLASS: Record<FontSize, string> = {
+  normal: 'text-base leading-relaxed',
+  large: 'text-lg sm:text-xl leading-relaxed',
+  huge: 'text-xl sm:text-2xl leading-loose',
+}
+
+const FONT_SIZE_LABEL: Record<FontSize, string> = { normal: '1x', large: '1.2x', huge: '1.5x' }
+
+const Chevron = ({ open = false }: { open?: boolean }) => (
+  <svg
+    viewBox="0 0 16 16"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2.75"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    className={`h-3.5 w-3.5 shrink-0 transition-transform ${open ? 'rotate-180' : ''}`}
+    aria-hidden="true"
+  >
+    <path d="M3.75 6.25L8 10.5l4.25-4.25" />
+  </svg>
+)
+
+const MENU_CLASS =
+  'absolute right-0 top-full mt-2 z-50 w-72 max-w-[calc(100vw-2rem)] rounded-2xl border border-ink/10 bg-paper/98 p-2 shadow-xl backdrop-blur animate-in fade-in-0 zoom-in-95 duration-150'
+
 interface BibleReaderProps {
   chapter: BibleChapterText
   /**
@@ -63,22 +124,33 @@ export function BibleReader({ chapter, trackProgress = true }: BibleReaderProps)
   const t = useTranslations('bible')
   const router = useRouter()
   const { bookSlug, chapter: chapterNumber, totalChapters } = chapter
+  const chapterKey = `${bookSlug}/${chapterNumber}`
 
   const [translation, setTranslation] = useTranslationPref()
   const [fontSize, setFontSize] = useFontSizePref()
-  const [hintHidden, hideHint] = useHintHidden()
+  const [mode, setMode] = useReaderModePref()
 
-  const [isTranslationOpen, setIsTranslationOpen] = useState(false)
-  const [selectedVerseNumber, setSelectedVerseNumber] = useState<number | null>(null)
+  const [openMenu, setOpenMenu] = useState<'translation' | 'more' | null>(null)
   const [isBookSelectorOpen, setIsBookSelectorOpen] = useState(false)
-  const [readingProgress, setReadingProgress] = useState(0)
 
-  // Полная глава с толкованиями — грузится один раз, при первом клике на стих
-  const [fullChapter, setFullChapter] = useState<BibleChapter | null>(null)
-  const [commentaryStatus, setCommentaryStatus] = useState<CommentaryStatus>('idle')
+  // Полная глава с толкованиями — грузится только в режиме толкования.
+  // Компонент может пережить переход на другую главу, поэтому загруженное
+  // сверяется с текущей главой, а не сбрасывается в эффекте.
+  const [loaded, setLoaded] = useState<BibleChapter | null>(null)
+  const [failedKey, setFailedKey] = useState<string | null>(null)
+  const requestedKeyRef = useRef<string | null>(null)
+  const fullChapter =
+    loaded?.bookSlug === bookSlug && loaded.chapter === chapterNumber ? loaded : null
+  const commentaryStatus: CommentaryStatus = fullChapter
+    ? 'ready'
+    : failedKey === chapterKey
+      ? 'error'
+      : 'loading'
 
-  const translationRef = useRef<HTMLDivElement | null>(null)
-  const articleRef = useRef<HTMLElement | null>(null)
+  const menusRef = useRef<HTMLDivElement | null>(null)
+  const panelRef = useRef<HTMLDivElement | null>(null)
+  // Стих, к которому вернуться после смены режима
+  const pendingVerseRef = useRef<number | null>(null)
 
   const prev = adjacentChapter(bookSlug, chapterNumber, totalChapters, 'prev')
   const next = adjacentChapter(bookSlug, chapterNumber, totalChapters, 'next')
@@ -88,33 +160,22 @@ export function BibleReader({ chapter, trackProgress = true }: BibleReaderProps)
     if (trackProgress) saveReadingProgress({ bookSlug, chapterNumber })
   }, [trackProgress, bookSlug, chapterNumber])
 
-  // Закрытие меню перевода по клику снаружи
+  // Закрытие меню по клику снаружи и по Escape
   useEffect(() => {
+    if (!openMenu) return
     const handleClickOutside = (e: MouseEvent) => {
-      if (translationRef.current && !translationRef.current.contains(e.target as Node)) {
-        setIsTranslationOpen(false)
-      }
+      if (menusRef.current && !menusRef.current.contains(e.target as Node)) setOpenMenu(null)
+    }
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setOpenMenu(null)
     }
     document.addEventListener('mousedown', handleClickOutside)
-    return () => document.removeEventListener('mousedown', handleClickOutside)
-  }, [])
-
-  // Полоска прогресса чтения главы
-  useEffect(() => {
-    const handleScroll = () => {
-      if (!articleRef.current) return
-      const rect = articleRef.current.getBoundingClientRect()
-      const total = articleRef.current.scrollHeight
-      const scrolled = -rect.top + window.innerHeight
-      setReadingProgress(Math.min(100, Math.max(0, (scrolled / total) * 100)))
-    }
-    window.addEventListener('scroll', handleScroll, { passive: true })
-    const frame = requestAnimationFrame(handleScroll)
+    document.addEventListener('keydown', handleKeyDown)
     return () => {
-      cancelAnimationFrame(frame)
-      window.removeEventListener('scroll', handleScroll)
+      document.removeEventListener('mousedown', handleClickOutside)
+      document.removeEventListener('keydown', handleKeyDown)
     }
-  }, [])
+  }, [openMenu])
 
   // Клавиатурная навигация: ← / → — соседние главы
   const prevBook = prev?.bookSlug
@@ -125,7 +186,7 @@ export function BibleReader({ chapter, trackProgress = true }: BibleReaderProps)
     const handleKeyDown = (e: KeyboardEvent) => {
       const tag = (e.target as HTMLElement)?.tagName
       if (tag === 'INPUT' || tag === 'TEXTAREA') return
-      if (isBookSelectorOpen || selectedVerseNumber !== null) return
+      if (isBookSelectorOpen) return
       if (e.altKey || e.ctrlKey || e.metaKey || e.shiftKey) return
 
       if (e.key === 'ArrowLeft' && prevBook && prevChapter) {
@@ -138,67 +199,62 @@ export function BibleReader({ chapter, trackProgress = true }: BibleReaderProps)
     }
     document.addEventListener('keydown', handleKeyDown)
     return () => document.removeEventListener('keydown', handleKeyDown)
-  }, [router, isBookSelectorOpen, selectedVerseNumber, prevBook, prevChapter, nextBook, nextChapter])
+  }, [router, isBookSelectorOpen, prevBook, prevChapter, nextBook, nextChapter])
 
-  const loadCommentaries = () => {
-    if (fullChapter || commentaryStatus === 'loading') return
-    setCommentaryStatus('loading')
+  const loadCommentaries = useCallback(() => {
+    requestedKeyRef.current = chapterKey
     fetchBibleChapter(bookSlug, chapterNumber).then((data) => {
-      if (data) {
-        setFullChapter(data)
-        setCommentaryStatus('ready')
-      } else {
-        setCommentaryStatus('error')
-      }
+      if (data) setLoaded(data)
+      else setFailedKey(chapterKey)
     })
+  }, [bookSlug, chapterNumber, chapterKey])
+
+  // Толкования подгружаются при входе в режим (в т. ч. сохранённый с прошлого раза)
+  useEffect(() => {
+    if (mode === 'commentary' && !fullChapter && requestedKeyRef.current !== chapterKey) {
+      loadCommentaries()
+    }
+  }, [mode, fullChapter, chapterKey, loadCommentaries])
+
+  const retryCommentaries = () => {
+    setFailedKey(null)
+    loadCommentaries()
   }
 
-  const selectVerse = (verseNumber: number) => {
-    setSelectedVerseNumber(verseNumber)
-    const verse = chapter.verses.find((v) => v.number === verseNumber)
-    if (verse?.hasCommentary) loadCommentaries()
+  // После смены режима возвращаемся к тому же стиху. В режиме толкования
+  // повторяем, когда толкования догрузятся и сдвинут вёрстку.
+  const commentaryReady = fullChapter !== null
+  useEffect(() => {
+    const verse = pendingVerseRef.current
+    if (verse === null) return
+    jumpToVerse(verse, stuckPanelBottom(panelRef.current))
+    if (mode === 'text' || commentaryReady) pendingVerseRef.current = null
+  }, [mode, commentaryReady])
+
+  const switchMode = (nextMode: ReaderMode) => {
+    pendingVerseRef.current =
+      window.scrollY > 200 ? topVisibleVerse(stuckPanelBottom(panelRef.current)) : null
+    setMode(nextMode)
+    setOpenMenu(null)
   }
 
   const handleSelectChapter = (newBookSlug: string, newChapter: number) => {
-    setSelectedVerseNumber(null)
     router.push(chapterHref(newBookSlug, newChapter))
   }
 
-  const selectedVerse =
-    selectedVerseNumber !== null
-      ? chapter.verses.find((v) => v.number === selectedVerseNumber) ?? null
-      : null
-  const selectedCommentaries =
-    selectedVerseNumber !== null
-      ? fullChapter?.verses.find((v) => v.number === selectedVerseNumber)?.commentaries
-      : undefined
-
+  const isCommentary = mode === 'commentary'
+  // В режиме толкования перевод всегда Синодальный; выбор читателя
+  // сохраняется и вернётся в режиме текста
+  const shownTranslation: TranslationKey = isCommentary ? COMMENTARY_TRANSLATION : translation
   const activeTranslationMeta =
-    BIBLE_TRANSLATIONS.find((tr) => tr.key === translation) ?? BIBLE_TRANSLATIONS[0]
-
-  const fontSizeClass =
-    fontSize === 'normal'
-      ? 'text-base leading-relaxed'
-      : fontSize === 'huge'
-        ? 'text-xl sm:text-2xl leading-loose'
-        : 'text-lg sm:text-xl leading-relaxed'
+    BIBLE_TRANSLATIONS.find((tr) => tr.key === shownTranslation) ?? BIBLE_TRANSLATIONS[0]
+  const commentaryAuthor = COMMENTARY_AUTHORS.find((a) => a.key === COMMENTARY_AUTHOR)
 
   return (
     <div className="mx-auto max-w-3xl">
-      {/* Панель управления чтением */}
-      <div className="sticky top-16 z-30 mb-4 sm:mb-6 rounded-2xl border border-ink/10 bg-paper/95 p-2 sm:p-2.5 shadow-sm backdrop-blur relative">
-        {/* Полоска прогресса чтения внутри панели */}
-        <div
-          className="absolute bottom-0 left-0 h-[2px] rounded-b-2xl bg-blue-dark/60 transition-[width] duration-150 ease-out"
-          style={{ width: `${readingProgress}%` }}
-          role="progressbar"
-          aria-valuenow={Math.round(readingProgress)}
-          aria-valuemin={0}
-          aria-valuemax={100}
-          aria-label={t('readingProgress')}
-        />
+      {/* Панель: содержание, перевод, остальное */}
+      <div ref={panelRef} className="sticky top-16 z-30 mb-4 sm:mb-6 rounded-2xl border border-ink/10 bg-paper/95 p-2 sm:p-2.5 shadow-sm backdrop-blur">
         <div className="flex items-center justify-between gap-1.5 sm:gap-2.5">
-          {/* Кнопка выбора книги и главы */}
           <button
             type="button"
             onClick={() => setIsBookSelectorOpen(true)}
@@ -213,73 +269,26 @@ export function BibleReader({ chapter, trackProgress = true }: BibleReaderProps)
                 {t('chapterTitle', { book: chapter.bookName, chapter: chapterNumber })}
               </span>
             </span>
-            <svg
-              viewBox="0 0 16 16"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2.75"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="h-3.5 w-3.5 shrink-0"
-              aria-hidden="true"
-            >
-              <path d="M3.75 6.25L8 10.5l4.25-4.25" />
-            </svg>
+            <Chevron />
           </button>
 
-          {/* Настройки: размер шрифта и перевод */}
-          <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
-            <div className="h-10 min-h-0 flex items-center rounded-xl border border-ink/15 bg-white p-0.5 shadow-2xs shrink-0">
+          <div ref={menusRef} className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+            {/* Перевод — только в режиме текста: толкование написано
+                под Синодальный перевод, менять его там незачем */}
+            <div className={`relative ${isCommentary ? 'hidden' : ''}`}>
               <button
                 type="button"
-                onClick={() => setFontSize(fontSize === 'huge' ? 'large' : 'normal')}
-                disabled={fontSize === 'normal'}
-                className="flex h-full aspect-square items-center justify-center rounded-lg text-xs sm:text-sm font-bold text-ink hover:bg-ice disabled:opacity-30 disabled:pointer-events-none"
-                title={t('fontSmaller')}
-                aria-label={t('fontSmaller')}
-              >
-                A-
-              </button>
-              <span className="hidden sm:inline px-1.5 text-xs font-heading font-bold text-ink-soft uppercase">
-                {fontSize === 'normal' ? '1x' : fontSize === 'large' ? '1.2x' : '1.5x'}
-              </span>
-              <button
-                type="button"
-                onClick={() => setFontSize(fontSize === 'normal' ? 'large' : 'huge')}
-                disabled={fontSize === 'huge'}
-                className="flex h-full aspect-square items-center justify-center rounded-lg text-xs sm:text-base font-bold text-ink hover:bg-ice disabled:opacity-30 disabled:pointer-events-none"
-                title={t('fontLarger')}
-                aria-label={t('fontLarger')}
-              >
-                A+
-              </button>
-            </div>
-
-            <div ref={translationRef} className="relative">
-              <button
-                type="button"
-                onClick={() => setIsTranslationOpen(!isTranslationOpen)}
+                onClick={() => setOpenMenu(openMenu === 'translation' ? null : 'translation')}
                 className="h-10 min-h-0 rounded-xl border border-ink/15 bg-white px-2.5 sm:px-3 text-xs sm:text-sm font-heading font-semibold uppercase tracking-wider text-ink hover:bg-ice transition-colors inline-flex items-center gap-1.5 shrink-0"
-                aria-expanded={isTranslationOpen}
+                aria-expanded={openMenu === 'translation'}
                 aria-label={t('chooseTranslation')}
               >
                 <span>{t('translation')}</span>
-                <svg
-                  viewBox="0 0 16 16"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2.75"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  className={`h-3.5 w-3.5 transition-transform ${isTranslationOpen ? 'rotate-180' : ''}`}
-                  aria-hidden="true"
-                >
-                  <path d="M3.75 6.25L8 10.5l4.25-4.25" />
-                </svg>
+                <Chevron open={openMenu === 'translation'} />
               </button>
 
-              {isTranslationOpen ? (
-                <div className="absolute right-0 top-full mt-2 z-50 w-72 max-w-[calc(100vw-2rem)] rounded-2xl border border-ink/10 bg-paper/98 p-2 shadow-xl backdrop-blur animate-in fade-in-0 zoom-in-95 duration-150">
+              {openMenu === 'translation' ? (
+                <div className={MENU_CLASS}>
                   <div className="px-2 py-1 text-[11px] font-heading font-bold uppercase tracking-wider text-ink-soft">
                     {t('availableTranslations')}
                   </div>
@@ -289,7 +298,7 @@ export function BibleReader({ chapter, trackProgress = true }: BibleReaderProps)
                       type="button"
                       onClick={() => {
                         setTranslation(tr.key)
-                        setIsTranslationOpen(false)
+                        setOpenMenu(null)
                       }}
                       className={`w-full flex flex-col items-start rounded-xl p-2.5 text-left transition-colors ${
                         translation === tr.key
@@ -316,45 +325,109 @@ export function BibleReader({ chapter, trackProgress = true }: BibleReaderProps)
                 </div>
               ) : null}
             </div>
+
+            {/* Остальное: режим толкования, размер текста; позже — аудио и поиск */}
+            <div className="relative">
+              <button
+                type="button"
+                onClick={() => setOpenMenu(openMenu === 'more' ? null : 'more')}
+                className={`flex h-10 w-10 min-h-0 items-center justify-center rounded-xl border transition-colors ${
+                  openMenu === 'more'
+                    ? 'border-blue-dark bg-ice text-blue-dark'
+                    : 'border-ink/15 bg-white text-ink hover:bg-ice'
+                }`}
+                aria-expanded={openMenu === 'more'}
+                aria-label={t('more')}
+                title={t('more')}
+              >
+                <svg viewBox="0 0 16 16" fill="currentColor" className="h-4 w-4" aria-hidden="true">
+                  <circle cx="3" cy="8" r="1.6" />
+                  <circle cx="8" cy="8" r="1.6" />
+                  <circle cx="13" cy="8" r="1.6" />
+                </svg>
+              </button>
+
+              {openMenu === 'more' ? (
+                <div className={MENU_CLASS}>
+                  <button
+                    type="button"
+                    role="switch"
+                    aria-checked={isCommentary}
+                    onClick={() => switchMode(isCommentary ? 'text' : 'commentary')}
+                    className="w-full flex items-center gap-3 rounded-xl p-2.5 text-left hover:bg-ice/50 transition-colors"
+                  >
+                    <span className="flex-1 min-w-0">
+                      <span className="block font-heading text-sm font-semibold tracking-wide text-ink">
+                        {t('commentaryMode')}
+                      </span>
+                      <span className="block text-xs text-ink-soft mt-0.5 leading-snug">
+                        {t('commentaryModeHint', { author: commentaryAuthor?.name ?? '' })}
+                      </span>
+                    </span>
+                    <span
+                      className={`relative h-6 w-10 shrink-0 rounded-full transition-colors ${
+                        isCommentary ? 'bg-blue-dark' : 'bg-ink/20'
+                      }`}
+                      aria-hidden="true"
+                    >
+                      <span
+                        className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow-sm transition-[left] ${
+                          isCommentary ? 'left-[18px]' : 'left-0.5'
+                        }`}
+                      />
+                    </span>
+                  </button>
+
+                  <div className="my-1.5 border-t border-ink/10" />
+
+                  <div className="flex items-center justify-between gap-3 p-2.5">
+                    <span className="font-heading text-sm font-semibold tracking-wide text-ink">
+                      {t('fontSize')}
+                    </span>
+                    <div className="h-9 flex items-center rounded-xl border border-ink/15 bg-white p-0.5 shrink-0">
+                      <button
+                        type="button"
+                        onClick={() => setFontSize(fontSize === 'huge' ? 'large' : 'normal')}
+                        disabled={fontSize === 'normal'}
+                        className="flex h-full aspect-square items-center justify-center rounded-lg text-xs font-bold text-ink hover:bg-ice disabled:opacity-30 disabled:pointer-events-none"
+                        aria-label={t('fontSmaller')}
+                      >
+                        A-
+                      </button>
+                      <span className="w-10 text-center text-xs font-heading font-bold text-ink-soft uppercase">
+                        {FONT_SIZE_LABEL[fontSize]}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => setFontSize(fontSize === 'normal' ? 'large' : 'huge')}
+                        disabled={fontSize === 'huge'}
+                        className="flex h-full aspect-square items-center justify-center rounded-lg text-sm font-bold text-ink hover:bg-ice disabled:opacity-30 disabled:pointer-events-none"
+                        aria-label={t('fontLarger')}
+                      >
+                        A+
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ) : null}
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Подсказка для читателя */}
-      {!hintHidden ? (
-        <aside
-          role="note"
-          aria-label={t('hintLabel')}
-          className="mb-4 sm:mb-6 flex items-center justify-between gap-2.5 rounded-2xl border border-blue-light/50 bg-ice/40 px-3.5 sm:px-4 py-2.5 sm:py-3 text-xs sm:text-sm text-ink-soft font-sans"
-        >
-          <div className="flex items-center gap-2.5">
-            <span className="flex h-6 w-6 sm:h-7 sm:w-7 shrink-0 items-center justify-center rounded-full bg-blue-dark text-white text-xs font-bold">
-              💬
-            </span>
-            <span>
-              <strong>{t('hintTitle')}</strong> {t('hintText')}
-            </span>
-          </div>
-          <button
-            type="button"
-            onClick={hideHint}
-            aria-label={t('hideHint')}
-            className="text-ink-soft hover:text-ink text-base px-1"
-          >
-            ✕
-          </button>
-        </aside>
-      ) : null}
-
       {/* Текст главы (строго без засечек — font-sans) */}
-      <article
-        ref={articleRef}
-        className="card p-4 sm:p-8 md:p-10 border border-ink/10 bg-white/90 shadow-sm font-sans"
-      >
+      <article className="card p-4 sm:p-8 md:p-10 border border-ink/10 bg-white/90 shadow-sm font-sans">
         <div className="border-b border-ink/10 pb-4 sm:pb-6 mb-4 sm:mb-6 text-center">
-          <span className="chip bg-sand/60 text-ink-soft text-xs uppercase mb-2">
-            {activeTranslationMeta.name} ({activeTranslationMeta.badge})
-          </span>
+          <div className="mb-2 flex flex-wrap justify-center gap-1.5">
+            <span className="chip bg-sand/60 text-ink-soft text-xs uppercase">
+              {activeTranslationMeta.name} ({activeTranslationMeta.badge})
+            </span>
+            {isCommentary && commentaryAuthor ? (
+              <span className="chip bg-blue-dark text-white text-xs uppercase">
+                {t('commentaryBy', { author: commentaryAuthor.shortName })}
+              </span>
+            ) : null}
+          </div>
           <h1 className="font-heading text-2xl sm:text-4xl font-bold uppercase tracking-wider text-ink">
             {chapter.bookName}
           </h1>
@@ -363,55 +436,33 @@ export function BibleReader({ chapter, trackProgress = true }: BibleReaderProps)
           </p>
         </div>
 
-        <div className={`space-y-2.5 sm:space-y-3.5 ${fontSizeClass}`}>
-          {chapter.verses.map((verse) => {
-            const isSelected = selectedVerseNumber === verse.number
-            const verseText = verse.text[translation] ?? verse.text.rst
-
-            return (
-              <div
+        {isCommentary ? (
+          <BibleCommentary
+            verses={chapter.verses}
+            fullChapter={fullChapter}
+            status={commentaryStatus}
+            onRetry={retryCommentaries}
+            translation={COMMENTARY_TRANSLATION}
+            fontSize={fontSize}
+          />
+        ) : (
+          // Каждый стих с новой строки, номер — надстрочный
+          <div className={`space-y-1.5 sm:space-y-2 text-ink ${FONT_SIZE_CLASS[fontSize]}`}>
+            {chapter.verses.map((verse) => (
+              <p
                 key={verse.number}
                 id={`v${verse.number}`}
-                onClick={() => selectVerse(verse.number)}
-                role="button"
-                tabIndex={0}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' || e.key === ' ') {
-                    e.preventDefault()
-                    selectVerse(verse.number)
-                  }
-                }}
-                className={`group relative flex items-start gap-2 sm:gap-2.5 rounded-xl p-2 sm:p-3 transition-colors cursor-pointer select-text scroll-mt-36 ${
-                  isSelected
-                    ? 'bg-ice/70 ring-2 ring-blue-dark text-ink'
-                    : 'hover:bg-ice/30 active:bg-ice/40 text-ink'
-                }`}
+                data-verse={verse.number}
+                className="scroll-mt-36 rounded transition-colors target:bg-sand/70"
               >
-                <span
-                  className={`mt-0.5 inline-flex h-6 min-w-[1.5rem] items-center justify-center rounded-md font-heading text-xs font-bold transition-colors shrink-0 ${
-                    isSelected
-                      ? 'bg-blue-dark text-white'
-                      : 'bg-sand/60 text-ink-soft group-hover:bg-blue-dark group-hover:text-white'
-                  }`}
-                >
+                <sup className="mr-1 font-heading text-[0.6em] font-bold text-blue-dark select-none">
                   {verse.number}
-                </span>
-
-                <div className="flex-1">
-                  <span>{verseText}</span>
-                  {verse.hasCommentary ? (
-                    <span
-                      title={t('hasCommentary')}
-                      className="ml-1.5 inline-flex items-center gap-0.5 rounded-md bg-ice/80 px-1.5 py-0.5 text-[11px] font-heading font-semibold text-blue-dark opacity-80 group-hover:opacity-100 transition-opacity"
-                    >
-                      💬
-                    </span>
-                  ) : null}
-                </div>
-              </div>
-            )
-          })}
-        </div>
+                </sup>
+                {verse.text[translation] ?? verse.text.rst}
+              </p>
+            ))}
+          </div>
+        )}
 
         {/* Навигация по главам — обычные ссылки: их видят поисковики,
             их можно открыть в новой вкладке, Next подгружает их заранее */}
@@ -460,20 +511,6 @@ export function BibleReader({ chapter, trackProgress = true }: BibleReaderProps)
           </div>
         </nav>
       </article>
-
-      {/* Шторка с толкованиями */}
-      <BibleBottomSheet
-        bookName={chapter.bookName}
-        chapterNumber={chapterNumber}
-        verse={selectedVerse}
-        commentaries={selectedCommentaries}
-        commentaryStatus={commentaryStatus}
-        onRetry={loadCommentaries}
-        totalVerses={chapter.verses.length}
-        translation={translation}
-        onClose={() => setSelectedVerseNumber(null)}
-        onSelectVerse={selectVerse}
-      />
 
       <BibleBookSelector
         currentBookSlug={bookSlug}

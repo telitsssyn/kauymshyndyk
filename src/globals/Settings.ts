@@ -83,15 +83,6 @@ export const Settings: GlobalConfig = {
           'Откройте 2gis.kz, найдите здание церкви, нажмите «Поделиться» → «Скопировать ссылку». Используется для кнопки «Как добраться».',
       },
     },
-    {
-      name: 'defaultOgImage',
-      type: 'upload',
-      relationTo: 'media',
-      label: 'Картинка для соцсетей по умолчанию',
-      admin: {
-        description: 'Показывается при отправке ссылки на сайт в мессенджерах, если у страницы нет своей обложки.',
-      },
-    },
   ],
   hooks: {
     afterChange: [() => revalidateSite()],

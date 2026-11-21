@@ -2,7 +2,7 @@ import type { CollectionConfig } from 'payload'
 import { BlocksFeature, lexicalEditor } from '@payloadcms/richtext-lexical'
 
 import { YouTubeBlock } from '@/blocks/YouTube'
-import { revalidateSite } from '@/lib/revalidate'
+import { revalidateContent } from '@/lib/revalidate'
 import { formatSlugHook } from '@/lib/slug'
 
 export const News: CollectionConfig = {
@@ -95,7 +95,7 @@ export const News: CollectionConfig = {
     },
   ],
   hooks: {
-    afterChange: [() => revalidateSite()],
-    afterDelete: [() => revalidateSite()],
+    afterChange: [() => revalidateContent()],
+    afterDelete: [() => revalidateContent()],
   },
 }
