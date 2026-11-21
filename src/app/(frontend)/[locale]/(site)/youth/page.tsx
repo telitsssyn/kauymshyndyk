@@ -21,7 +21,7 @@ const YOUTH_REELS: ReelItem[] = [1, 2, 3, 4].map((id) => ({
 }))
 
 // У молодёжки свой Instagram, отдельный от церковного из настроек сайта
-const YOUTH_INSTAGRAM = 'https://www.instagram.com/way_pvl/'
+const YOUTH_INSTAGRAM = 'https://www.instagram.com/shyndyk_youth/'
 
 const ACTIVITIES = [
   {
@@ -71,11 +71,7 @@ export async function generateMetadata(): Promise<Metadata> {
   })
 }
 
-export default async function YouthPage({
-  params,
-}: {
-  params: Promise<{ locale: string }>
-}) {
+export default async function YouthPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params
   setRequestLocale(locale)
 
@@ -207,10 +203,7 @@ export default async function YouthPage({
             <h2 className="text-3xl sm:text-4xl">{t('ctaTitle')}</h2>
             <p className="mt-4 max-w-2xl text-xl text-white/90">{t('ctaText')}</p>
             <div className="mt-8">
-              <Link
-                href="/contacts"
-                className="group btn bg-white text-navy hover:bg-ice"
-              >
+              <Link href="/contacts" className="group btn bg-white text-navy hover:bg-ice">
                 <span>{t('contactsCta')}</span>
                 <Arrow />
               </Link>
